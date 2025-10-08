@@ -13,13 +13,14 @@ config_version=5
 config/name="Card Story"
 config/version="0.0.1"
 run/main_scene="res://scenes/menu/menu.tscn"
-config/features=PackedStringArray("4.4")
+config/features=PackedStringArray("4.5")
 config/icon="res://assets/sprites/icon.png"
 
 [autoload]
 
 GGT="*res://addons/ggt-core/ggt.gd"
 GGT_DebugShortcuts="*res://addons/ggt-debug-shortcuts/autoload/debug_shortcuts.tscn"
+EventBus="*res://scripts/core/event_bus.gd"
 
 [category]
 

@@ -70,15 +70,11 @@ theme_override_constants/separation = 16
 [node name="PlayButton" type="Button" parent="MarginContainer/Control/VBoxContainer"]
 custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
-focus_neighbor_bottom = NodePath("../ExitButton")
-focus_next = NodePath("../ExitButton")
 text = "START"
 
 [node name="ExitButton" type="Button" parent="MarginContainer/Control/VBoxContainer"]
 custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
-focus_neighbor_top = NodePath("../PlayButton")
-focus_previous = NodePath("../PlayButton")
 text = "EXIT"
 
 [node name="Version" type="VBoxContainer" parent="MarginContainer/Control"]

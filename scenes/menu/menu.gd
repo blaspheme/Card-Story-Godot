@@ -24,6 +24,13 @@ func _on_PlayButton_pressed() -> void:
 	}
 	GGT.change_scene("res://scenes/gameplay/gameplay.tscn", params)
 
+func _on_Demo1Button_pressed() -> void:
+	var params = {
+		"show_progress_bar": true,
+		"demo_name": "Demo1"
+	}
+	GGT.change_scene("res://scenes/demo1/demo1.tscn", params)
+
 
 func _on_ExitButton_pressed() -> void:
 	# gently shutdown the game
