@@ -20,7 +20,9 @@ config/icon="res://assets/sprites/icon.png"
 
 GGT="*res://addons/ggt-core/ggt.gd"
 GGT_DebugShortcuts="*res://addons/ggt-debug-shortcuts/autoload/debug_shortcuts.tscn"
-EventBus="*res://scripts/core/event_bus.gd"
+EventBus="*res://addons/cardstory_tools/core/event_bus.gd"
+GameConfig="*res://scripts/GameConfig.gd"
+GameStyle="*res://scripts/GameStyle.gd"
 
 [category]
 
@@ -33,7 +35,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/ggt-core/plugin.cfg", "res://addons/ggt-debug-shortcuts/plugin.cfg")
+enabled=PackedStringArray("res://addons/cardstory_tools/plugin.cfg", "res://addons/ggt-core/plugin.cfg", "res://addons/ggt-debug-shortcuts/plugin.cfg")
 
 [gui]
 
