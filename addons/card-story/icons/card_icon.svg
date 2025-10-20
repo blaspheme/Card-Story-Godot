@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 简单的卡牌图标（SVG），可直接用于 Godot 或导出为 PNG -->
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- 卡片背景 -->
+  <defs>
+    <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f0f0f3"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="12" ry="12" fill="url(#g)" stroke="#2b2b2b" stroke-width="3"/>
+  <!-- 内边框 -->
+  <rect x="18" y="18" width="92" height="92" rx="8" ry="8" fill="#ffffff" stroke="#e6e6e9" stroke-width="1"/>
+
+  <!-- 卡牌中心图形（菱形） -->
+  <g transform="translate(64,64)">
+    <polygon points="0,-26 20,0 0,26 -20,0" fill="#d9534f" stroke="#b23b3b" stroke-width="2"/>
+  </g>
+
+  <!-- 角标小菱形 -->
+  <g transform="translate(100,28) rotate(0)">
+    <polygon points="0,-8 6,0 0,8 -6,0" fill="#d9534f" stroke="#b23b3b" stroke-width="1"/>
+  </g>
+
+  <!-- 可选的阴影效果 -->
+  <ellipse cx="64" cy="98" rx="30" ry="6" fill="#000" opacity="0.06"/>
+</svg>

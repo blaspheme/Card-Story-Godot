@@ -13,7 +13,7 @@ config_version=5
 config/name="Card Story"
 config/version="0.0.1"
 run/main_scene="res://scenes/menu/menu.tscn"
-config/features=PackedStringArray("4.4")
+config/features=PackedStringArray("4.5")
 config/icon="res://assets/sprites/icon.png"
 
 [autoload]
@@ -32,7 +32,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/ggt-core/plugin.cfg", "res://addons/ggt-debug-shortcuts/plugin.cfg")
+enabled=PackedStringArray("res://addons/card-story/plugin.cfg", "res://addons/ggt-core/plugin.cfg", "res://addons/ggt-debug-shortcuts/plugin.cfg")
 
 [gui]
 
