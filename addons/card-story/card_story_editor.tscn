@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bavjeldd68r1f"]
+
+[node name="CardStoryEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 28.0
+text = "大大大大大大"
