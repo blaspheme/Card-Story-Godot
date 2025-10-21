@@ -32,7 +32,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/card-story/plugin.cfg", "res://addons/ggt-core/plugin.cfg", "res://addons/ggt-debug-shortcuts/plugin.cfg")
+enabled=PackedStringArray("res://addons/card-story/plugin.cfg", "res://addons/ggt-core/plugin.cfg", "res://addons/ggt-debug-shortcuts/plugin.cfg", "res://addons/kenyoni/plugin_reloader/plugin.cfg")
 
 [gui]
 
