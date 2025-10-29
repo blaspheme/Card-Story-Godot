@@ -14,11 +14,11 @@ var this_card = null
 var matches: Array = []
 
 # 已评估的可执行命令（命令对象应实现 execute(context) 并提供 release()/dispose()）
-var act_modifiers: Array = []
-var card_modifiers: Array = []
-var table_modifiers: Array = []
-var path_modifiers: Array = []
-var deck_modifiers: Array = []
+var act_modifiers: Array[ActModifier]
+var card_modifiers: Array[CardModifier]
+var table_modifiers: Array[TableModifier]
+var path_modifiers: Array[PathModifier]
+var deck_modifiers: Array[DeckModifier]
 
 # 待销毁的 CardViz 列表（由命令或系统加入）
 var _to_destroy: Array = []

@@ -1,5 +1,4 @@
 extends Node
-class_name GameManager
 
 var fixed_dt := 1.0 / 60.0
 var accumulator := 0.0

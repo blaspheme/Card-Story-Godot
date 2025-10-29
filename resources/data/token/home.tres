@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="TokenData" load_steps=3 format=3 uid="uid://ls1vth6pe28m"]
+
+[ext_resource type="Script" uid="uid://dphe1y5kkblvy" path="res://scripts/data/token_data.gd" id="1_cwh5n"]
+[ext_resource type="Script" uid="uid://dc60x7mtd6xwq" path="res://scripts/data/rule_data.gd" id="2_pm8b6"]
+
+[resource]
+script = ExtResource("1_cwh5n")
+label = "家"
+metadata/_custom_type_script = "uid://dphe1y5kkblvy"
