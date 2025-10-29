@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="StoryData" load_steps=2 format=3 uid="uid://yx3s86yyqvej"]
+
+[ext_resource type="Script" uid="uid://bosigdmo3kuku" path="res://addons/card-story/objects/editor/story_data.gd" id="1_wlarx"]
+
+[resource]
+script = ExtResource("1_wlarx")
+nodes = {
+&"1_1": {
+"dialogue": "",
+"offset": Vector2(400, 280),
+"options": {
+0: {
+"condition": {},
+"link": "END",
+"text": ""
+}
+},
+"size": Vector2(300, 240),
+"speaker": ""
+}
+}
+strays = Array[String](["1_1"])

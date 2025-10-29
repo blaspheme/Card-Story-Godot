@@ -14,3 +14,7 @@ builds/**/*
 
 # OSX 
 .DS_Store
+
+# Code coverage reports
+coverage.*
+reports/
