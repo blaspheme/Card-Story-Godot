@@ -1,0 +1,43 @@
+各目录职责与示例文件
+scripts/data/
+
+职责：定义 Resource 类型（导出、编辑器友好），无运行时代码副作用。
+示例：act_data.gd（Resource）、card_data.gd
+原因：Data 层与运行时解耦，便于序列化与编辑器调整（符合设计文档）。
+scripts/model/
+
+职责：实现领域逻辑但无节点依赖，接收 Data 生成/修改 state。
+示例：rule_evaluator.gd、fragment_predicate.gd
+scripts/state/
+
+职责：RefCounted、可回收的运行时实例（CardState、ActState），只包含状态与最小操作。
+示例：card_state.gd
+scripts/system/core/
+
+职责：最底层运行时基础与基础服务（池化、ContextData、命令执行器）；必须贯彻 AGENTS.md 的静态契约与断言策略。
+示例：
+context_data.gd（数据持有者）
+context_facade.gd（对外 API，工厂方法）
+pool_manager.gd（对象池）
+command_executor.gd
+scripts/system/behavior/
+
+职责：行为系统（被 GameLoop 调度），不依赖 UI，接收 Context/Data 并产生命令（Command/Modifier → PooledCommand）。
+示例：behavior_system.gd、rule_system.gd、test_evaluator.gd
+scripts/system/game/
+
+职责：与游戏层面的 manager、story DB、target、match helpers 等，可能依赖 Engine singletons（但尽量以接口注入为主）。
+示例：game_manager.gd、story_database.gd、target.gd
+scripts/system/services/
+
+职责：可复用、跨系统调用的服务（fragment_resolver.gd、serialization、debug helpers）。
+重要：这些服务应只直接依赖 ContextData 或明确的接口类型，而非任意对象。
+scripts/ui/
+
+职责：纯渲染/交互逻辑，直接消费 state（通过订阅/事件），不包含游戏规则逻辑。
+scripts/util/
+
+职责：小工具、算法实现、集合操作，允许被多个层调用。
+scripts/tests/
+
+职责：gdUnit 测试、单元/集成测试。每次改动先添加测试再修改实现（测试驱动迁移）。

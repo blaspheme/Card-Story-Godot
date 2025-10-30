@@ -7,15 +7,18 @@ var behavior_system: BehaviorSystem
 var card_states: Array = []
 # 持有所有活动的 FSM（ActStateMachine 实例）
 var act_fsms: Array = []
+var pool_manager: PoolManager = null
 
 func _ready() -> void:
 	_init_behavior_system()
+	# 初始化全局 PoolManager，用于跨 ActLogic 实例共享命令对象池
+	pool_manager = preload("res://scripts/system/core/pool_manager.gd").new()
 
 
 func _process(delta: float) -> void:
 	_fixed_update(delta)
 
-func _update_render_only(delta: float) -> void:
+func _update_render_only(_delta: float) -> void:
 	# UI 更新等
 	pass
 
@@ -59,3 +62,11 @@ func _init_behavior_system() -> void:
 	## 注册 handlers（每个 handler 单独文件）
 	var decay_handler = preload("res://scripts/system/behavior/decay_handle.gd").new()
 	behavior_system.register_handler("decay", decay_handler)
+
+func inject_pool_to_act_logic(act_logic) -> void:
+	# 将全局 pool 注入到 ActLogic 实例，按静态契约要求 act_logic 提供 inject_pool_manager 方法
+	assert(act_logic != null)
+	assert(typeof(act_logic) == TYPE_OBJECT)
+	assert(act_logic.has_method("inject_pool_manager"), "ActLogic must implement inject_pool_manager(pool)")
+	assert(pool_manager != null)
+	act_logic.inject_pool_manager(pool_manager)
