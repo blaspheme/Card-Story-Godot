@@ -1,0 +1,101 @@
+[gd_scene load_steps=10 format=3 uid="uid://qq6c6dil3jcl"]
+
+[ext_resource type="Script" uid="uid://ct12jv14my50w" path="res://scripts/gameplay/card/card_viz.gd" id="1_fi7n1"]
+[ext_resource type="Resource" uid="uid://dgp6abcejnxu8" path="res://resources/data/card/player_card.tres" id="2_iqxif"]
+[ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="3_02ip0"]
+[ext_resource type="Shader" uid="uid://dxubqahmkwplj" path="res://resources/shaders/ui/card_outline.gdshader" id="4_jhmj3"]
+[ext_resource type="Texture2D" uid="uid://ck8b5vmcv5ai2" path="res://assets/sprite/card_border.svg" id="5_nmxfg"]
+[ext_resource type="Texture2D" uid="uid://pgo1v2tn7yih" path="res://icon.svg" id="6_tn6ot"]
+[ext_resource type="PackedScene" uid="uid://bb2gokljyaa7w" path="res://scenes/gameplay/widgets/stack_counter.tscn" id="7_w6jym"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fjvxj"]
+size = Vector2(200, 300)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fjvxj"]
+shader = ExtResource("4_jhmj3")
+shader_parameter/outline_color = Color(1, 0.8, 0.2, 1)
+shader_parameter/outline_strength = 0.0
+shader_parameter/thickness = 2.0
+
+[node name="CardViz" type="Node2D"]
+script = ExtResource("1_fi7n1")
+card_data = ExtResource("2_iqxif")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_fjvxj")
+debug_color = Color(0.8999739, 0.0001732707, 0.7657645, 0.41960785)
+
+[node name="Root" type="Node" parent="."]
+script = ExtResource("3_02ip0")
+local_card = NodePath("..")
+free = true
+
+[node name="Background" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_fjvxj")
+texture = ExtResource("5_nmxfg")
+
+[node name="Front" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Front"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Image" type="TextureRect" parent="Front/VBoxContainer"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("6_tn6ot")
+expand_mode = 1
+
+[node name="Title" type="Label" parent="Front/VBoxContainer"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+text = "2222222"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 1
+clip_text = true
+
+[node name="Back" type="TextureRect" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="StackCounter" parent="." instance=ExtResource("7_w6jym")]
+position = Vector2(100, 150)
+scale = Vector2(0.25, 0.25)
+
+[node name="DaceyTimer" type="Label" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.13436395, 0.08804173, 0.21728939, 1)
+theme_override_font_sizes/font_size = 100
+text = "999"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
+[connection signal="mouse_entered" from="Area2D" to="." method="_on_area_2d_mouse_entered"]
+[connection signal="mouse_exited" from="Area2D" to="." method="_on_area_2d_mouse_exited"]

@@ -1,19 +1,6 @@
 extends Node
 
 # 全局事件总线
-# 设计原则：
-# - 使用严格的类型声明，避免运行时的动态容错（遵循 AGENTS.md）
-# - 支持优先级、一次性订阅（once）、按正则模式订阅、同步触发与异步触发
-# - 支持暂停单事件或全局暂停、查询和清理订阅
-# - 在触发时对订阅表做浅拷贝，确保在回调中注册/注销不会影响当前分发顺序
-# - 所有公共接口使用 tabs 缩进与中文注释（遵循项目约定）
-#
-# 使用方式（建议将此脚本注册为 Autoload 单例，名字为 EventBus）：
-# EventBus.subscribe("card/draw", Callable(self, "on_draw"), priority = 10)
-# EventBus.emit("card/draw", [card_id, player_id])
-#
-# 注意：订阅的 Callable 必须通过静态类型保证其有效性（例如传入 Callable(obj, "method")）
-# 如果 Callable 无效，应在创建时就抛出断言。
 
 # 内部订阅项结构体（使用 Dictionary）
 # { id: int, callable: Callable, priority: int, once: bool }

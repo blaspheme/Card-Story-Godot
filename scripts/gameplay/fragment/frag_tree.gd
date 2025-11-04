@@ -6,31 +6,28 @@ signal change_event()
 
 @export var local_fragments: Array[HeldFragmentData] = []
 @export var local_card: NodePath
-@export var matches: Array[CardViz2D] = []
+@export var matches: Array[CardViz] = []
 @export var memory_fragment: FragmentData = null
-@export var free: bool = true
+@export var free: bool = false
 @export var pause: bool = false
 
 @onready var _local_card_node = get_node(local_card) if (local_card != null and str(local_card) != "") else null
+
+# ===============================
+# 实际方法
+# ===============================
+
 # 返回包含本节点及所有启用子 FragTree 下的 CardViz（递归）
-func cards() -> Array:
-	var out: Array = []
+func cards() -> Array[CardViz]:
+	var out: Array[CardViz] = []
 	_collect_cards_recursive(self, out)
 	if _local_card_node != null:
 		out.append(_local_card_node)
 	return out
 
-func _collect_cards_recursive(node: Node, out: Array) -> void:
-	for child in node.get_children():
-		# 以字符串判断类型以避免强依赖（但一般项目会有 CardViz 类）
-		if child.get_class() == "CardViz":
-			out.append(child)
-		# 继续递归
-		_collect_cards_recursive(child, out)
-
-# 仅返回作为直接子节点的 CardViz
-func direct_cards() -> Array:
-	var out: Array = []
+# 仅返回作为直接子节点的 CardViz（非递归）
+func direct_cards() -> Array[CardViz]:
+	var out: Array[CardViz] = []
 	for child in get_children():
 		if child.get_class() == "CardViz":
 			out.append(child)
@@ -50,20 +47,6 @@ func fragments() -> Array:
 func free_fragments() -> Array:
 	return _get_fragments(true)
 
-func _get_fragments(only_free: bool) -> Array:
-	var out: Array = []
-	# 遍历自身及子 FragTree 节点
-	var stack: Array = [self]
-	while stack.size() > 0:
-		var node = stack.pop_back()
-		if node is FragTree:
-			if not only_free or node.free:
-				for frag in node.local_fragments:
-					# frag 预期为 Dictionary 或自定义 Resource，直接追加并合并计数需在实现中完成
-					out.append(frag)
-		for c in node.get_children():
-			stack.append(c)
-	return out
 
 func clear() -> void:
 	matches.clear()
@@ -280,3 +263,31 @@ func on_add_card(card_viz: Node) -> void:
 func interpolate_string(source: String) -> String:
 	# 留空实现：复杂的字符串插值可稍后实现
 	return source
+
+
+# ===============================
+# 内部方法
+# ===============================
+
+func _collect_cards_recursive(node: Node, out: Array) -> void:
+	for child in node.get_children():
+		# 以字符串判断类型以避免强依赖（但一般项目会有 CardViz 类）
+		if child.get_class() == "CardViz":
+			out.append(child)
+		# 继续递归
+		_collect_cards_recursive(child, out)
+
+func _get_fragments(only_free: bool) -> Array[HeldFragmentData]:
+	var out: Array[HeldFragmentData] = []
+	# 遍历自身及子 FragTree 节点
+	var stack: Array = [self]
+	while stack.size() > 0:
+		var node = stack.pop_back()
+		if node is FragTree:
+			if not only_free or node.free:
+				for frag in node.local_fragments:
+					# frag 预期为 Dictionary 或自定义 Resource，直接追加并合并计数需在实现中完成
+					out.append(frag)
+		for c in node.get_children():
+			stack.append(c)
+	return out

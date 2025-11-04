@@ -1,5 +1,5 @@
 extends Node2D
-class_name CardViz2D
+class_name CardViz
 
 # 导出变量
 # 卡牌的数据资源
@@ -14,7 +14,7 @@ class_name CardViz2D
 @onready var back_image: TextureRect = $Back
 @onready var background: Sprite2D = $Background
 @onready var mat: ShaderMaterial = $Background.material
-
+@onready var stack_counter = $StackCounter
 # ===============================
 # 属性
 # ===============================
@@ -30,6 +30,8 @@ func _ready() -> void:
 	title_label.text = card_data.label
 	front_image.texture = card_data.image
 	back_image.texture = card_data.image
+	# 组件赋值
+	stack_counter.parent_node = $"."
 
 # --------------------
 # 动画函数
@@ -73,7 +75,11 @@ func _on_area_2d_mouse_exited() -> void:
 	_highlight(false)
 
 # 卡牌输入逻辑
+@warning_ignore("unused_parameter")
 func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
+	if stack_counter.stack_drag:
+		# 堆叠拖拽状态，不处理单卡拖拽
+		return
 	# 拖拽逻辑
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:

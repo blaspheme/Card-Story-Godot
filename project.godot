@@ -20,6 +20,7 @@ config/icon="uid://pgo1v2tn7yih"
 
 GGT="*res://addons/ggt-core/ggt.gd"
 GGT_DebugShortcuts="*res://addons/ggt-debug-shortcuts/autoload/debug_shortcuts.tscn"
+EventBus="*res://scripts/event_bus.gd"
 
 [category]
 

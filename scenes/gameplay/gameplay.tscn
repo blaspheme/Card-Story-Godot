@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://4fyoq8npekf0"]
+[gd_scene load_steps=4 format=3 uid="uid://4fyoq8npekf0"]
 
 [ext_resource type="Script" uid="uid://clnensqaofqvj" path="res://scripts/manager/game_manager.gd" id="1_elxb5"]
-[ext_resource type="PackedScene" uid="uid://qq6c6dil3jcl" path="res://scenes/gameplay/widgets/viz2d/card_viz_2d.tscn" id="2_x0t60"]
+[ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="2_2p25t"]
+[ext_resource type="PackedScene" uid="uid://qq6c6dil3jcl" path="res://scenes/gameplay/viz/card_viz.tscn" id="2_x0t60"]
 
 [node name="Gameplay" type="Node"]
 
@@ -17,8 +18,9 @@ script = ExtResource("1_elxb5")
 [node name="UIManager" type="Node" parent="Manager"]
 
 [node name="Root" type="Node" parent="."]
+script = ExtResource("2_2p25t")
 
 [node name="Table" type="Node2D" parent="Root"]
 
 [node name="CardViz2D" parent="Root/Table" instance=ExtResource("2_x0t60")]
-position = Vector2(314, 265)
+position = Vector2(837, 381)

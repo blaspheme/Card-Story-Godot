@@ -4,7 +4,7 @@ class_name GameManager
 # ===============================
 # 实例化scene
 # ===============================
-const card_viz = preload("res://scenes/gameplay/widgets/viz2d/card_viz_2d.tscn")
+const card_viz = preload("res://scenes/gameplay/viz/card_viz.tscn")
 
 
 # ===============================
@@ -22,7 +22,7 @@ var pool_manager: PoolManager = null
 func _ready() -> void:
 	_init_behavior_system()
 	# 初始化全局 PoolManager，用于跨 ActLogic 实例共享命令对象池
-	pool_manager = preload("res://scripts/system/core/pool_manager.gd").new()
+	pool_manager = preload("res://scripts/manager/pool_manager.gd").new()
 
 	# 在启动时注入已存在的 ActLogic 节点
 	_inject_existing_actlogic_nodes()
@@ -83,9 +83,9 @@ func _cleanup_expired_states() -> void:
 # ===============================
 func _init_behavior_system() -> void:
 	# 创建 BehaviorSystem 实例
-	behavior_system = preload("res://scripts/system/behavior/behavior_system.gd").new()
+	behavior_system = preload("res://scripts/gameplay/behavior/behavior_system.gd").new()
 	## 注册 handlers（每个 handler 单独文件）
-	var decay_handler = preload("res://scripts/system/behavior/decay_handle.gd").new()
+	var decay_handler = preload("res://scripts/gameplay/behavior/decay_handle.gd").new()
 	behavior_system.register_handler("decay", decay_handler)
 
 func inject_pool_to_act_logic(act_logic) -> void:

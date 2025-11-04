@@ -17,7 +17,7 @@ class CallHelper:
 
 
 func _create_bus() -> Node:
-	var bus := preload("res://scripts/system/services/event_bus.gd").new()
+	var bus := preload("res://scripts/event_bus.gd").new()
 	add_child(bus)
 	return bus
 
