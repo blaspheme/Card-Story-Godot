@@ -56,8 +56,10 @@ func resolve_cards(scope) -> Array:
 		return [card]
 	# fragment -> 查询 scope 中匹配的卡
 	if is_fragment() and scope != null:
-		# 支持两种命名的查找函数（兼容不同实现）
-		if scope.has_method("FindAll"):
+		# 支持几种可能的查找接口，优先使用新的 find_all_by_aspect
+		if scope.has_method("find_all_by_aspect"):
+			return scope.find_all_by_aspect(fragment)
+		elif scope.has_method("FindAll"):
 			return scope.FindAll(fragment)
 		elif scope.has_method("find_all"):
 			return scope.find_all(fragment)
@@ -65,7 +67,7 @@ func resolve_cards(scope) -> Array:
 	return []
 
 # 为调试输出友好字符串
-func to_string() -> String:
+func to_str() -> String:
 	match kind:
 		Kind.NONE:
 			return "Target(None)"

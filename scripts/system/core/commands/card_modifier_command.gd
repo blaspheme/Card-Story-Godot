@@ -37,23 +37,23 @@ func execute(context) -> void:
 	match op:
 		GameEnums.CardOp.FragmentAdditive: # FragmentAdditive
 			for target_card in target_cards:
-				# 假定 target_card.frag_tree.Adjust 可用并按契约工作
-				target_card.frag_tree.Adjust(what, level)
+				# 假定 target_card.frag_tree.adjust 可用并按契约工作
+				target_card.frag_tree.adjust(what, level)
 		GameEnums.CardOp.FragmentSet: # FragmentSet
 			for target_card in target_cards:
-				var count = target_card.frag_tree.Count(what)
-				target_card.frag_tree.Adjust(what, level - count)
+				var count = target_card.frag_tree.count(what)
+				target_card.frag_tree.adjust(what, level - count)
 		GameEnums.CardOp.Transform: # Transform
 			if level > 0 and what != null:
 				for target_card in target_cards:
 					if typeof(what) == TYPE_OBJECT and "fragment" in what and what.fragment != null:
 						# 如果 what.fragment 是 Card 类型（按项目契约），调用 Transform
 						target_card.Transform(what.fragment)
-						context.scope.Adjust(target_card, level - 1)
+						context.scope.adjust(target_card, level - 1)
 					elif typeof(what) == TYPE_OBJECT and "cards" in what and what.cards != null:
 						for card_viz in what.cards:
 							target_card.Transform(card_viz.card)
-							context.scope.Adjust(target_card, level - 1)
+							context.scope.adjust(target_card, level - 1)
 		GameEnums.CardOp.Decay: # Decay
 			for target_card in target_cards:
 				if what != null and typeof(what) == TYPE_OBJECT and "fragment" in what and what.fragment != null:
@@ -77,8 +77,8 @@ func execute(context) -> void:
 						pass
 					elif what.cards != null:
 						for card_viz in what.cards:
-							if target_card.frag_tree.cards.find_all(func(x): return x.MemoryEqual(card_viz)).size() == 0:
-								var _new_card_viz = target_card.frag_tree.Adjust(card_viz, 1)
+							if target_card.frag_tree.cards().find_all(func(x): return x.MemoryEqual(card_viz)).size() == 0:
+								var _new_card_viz = target_card.frag_tree.adjust(card_viz, 1)
 
 func release() -> void:
 	# 重置字段，准备回收；注意：不直接依赖全局 PoolManager，调用方可根据需要将对象放回池中

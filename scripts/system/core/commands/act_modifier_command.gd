@@ -29,18 +29,18 @@ func execute(context) -> void:
 		GameEnums.ActOp.Adjust:
 			if typeof(target) == TYPE_OBJECT and "cards" in target and target.cards != null:
 				for card_viz in target.cards:
-					var count = context.scope.Adjust(card_viz, level)
+					var count = context.scope.adjust(card_viz, level)
 					if level < 0 and count < 0:
 						context.Destroy(card_viz)
 			elif typeof(target) == TYPE_OBJECT and "fragment" in target and target.fragment != null and level < 0:
-				var cards = context.scope.FindAll(target.fragment)
-				var count2 = context.scope.Adjust(target.fragment, level)
+				var cards = context.scope.find_all_by_aspect(target.fragment)
+				var count2 = context.scope.adjust(target.fragment, level)
 				if count2 < 0:
 					var to_destroy = -count2
 					for i in range(min(to_destroy, cards.size())):
 						context.Destroy(cards[i])
 			else:
-				context.scope.Adjust(target.fragment, level)
+				context.scope.adjust(target.fragment, level)
 		GameEnums.ActOp.Grab:
 			var target_cards_y = context.ResolveTargetCards(target, context.scope)
 			if target_cards_y != null:
@@ -70,7 +70,7 @@ func execute(context) -> void:
 			else:
 				context.scope.memory_fragment = null
 		GameEnums.ActOp.RunTriggers:
-			context.act_logic.InjectTriggers(target)
+			context.act_logic.inject_triggers(target)
 
 func release() -> void:
 	op = GameEnums.ActOp.Adjust

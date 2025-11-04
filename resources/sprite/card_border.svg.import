@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://byniue2cdd2yv"
-path="res://.godot/imported/pause_button.png-70c9bf3f2acf4e572f86b5334cb6e8a3.ctex"
+uid="uid://ck8b5vmcv5ai2"
+path="res://.godot/imported/card_border.svg-5293e3bf08a7f62232268bed2636e701.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://scenes/gameplay/pause-layer/pause_button.png"
-dest_files=["res://.godot/imported/pause_button.png-70c9bf3f2acf4e572f86b5334cb6e8a3.ctex"]
+source_file="res://resources/sprite/card_border.svg"
+dest_files=["res://.godot/imported/card_border.svg-5293e3bf08a7f62232268bed2636e701.ctex"]
 
 [params]
 
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

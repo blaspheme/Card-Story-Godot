@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 霓虹渐变色 - 从青色到紫色 -->
+    <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D9FF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 发光效果 -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- 更强的外发光 -->
+    <filter id="outerGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#8B5CF6" flood-opacity="0.6" result="color"/>
+      <feComposite in="color" in2="blur" operator="in" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 透明背景 -->
+  <rect width="200" height="300" fill="none"/>
+  
+  <!-- 外层发光边框 -->
+  <rect x="2" y="2" width="196" height="296" 
+        rx="12" ry="12" 
+        fill="none" 
+        stroke="url(#neonGradient)" 
+        stroke-width="5"
+        filter="url(#outerGlow)"/>
+  
+  <!-- 主边框 - 带渐变 -->
+  <rect x="5" y="5" width="190" height="290" 
+        rx="10" ry="10" 
+        fill="none" 
+        stroke="url(#neonGradient)" 
+        stroke-width="3"
+        filter="url(#glow)"/>
+  
+  <!-- 内边框 - 细线点缀 -->
+  <rect x="9" y="9" width="182" height="282" 
+        rx="8" ry="8" 
+        fill="none" 
+        stroke="#FFFFFF" 
+        stroke-width="1"
+        opacity="0.3"/>
+  
+  <!-- 角落装饰 - 左上 -->
+  <line x1="20" y1="15" x2="35" y2="15" stroke="url(#neonGradient)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="15" y1="20" x2="15" y2="35" stroke="url(#neonGradient)" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- 角落装饰 - 右上 -->
+  <line x1="180" y1="15" x2="165" y2="15" stroke="url(#neonGradient)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="185" y1="20" x2="185" y2="35" stroke="url(#neonGradient)" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- 角落装饰 - 左下 -->
+  <line x1="20" y1="285" x2="35" y2="285" stroke="url(#neonGradient)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="15" y1="280" x2="15" y2="265" stroke="url(#neonGradient)" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- 角落装饰 - 右下 -->
+  <line x1="180" y1="285" x2="165" y2="285" stroke="url(#neonGradient)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="185" y1="280" x2="185" y2="265" stroke="url(#neonGradient)" stroke-width="2" stroke-linecap="round"/>
+</svg>

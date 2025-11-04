@@ -1,14 +1,24 @@
-[gd_scene load_steps=4 format=3 uid="uid://4fyoq8npekf0"]
+[gd_scene load_steps=3 format=3 uid="uid://4fyoq8npekf0"]
 
-[ext_resource type="Texture2D" uid="uid://dtwpm3uclaspj" path="res://assets/sprites/icon.png" id="1"]
-[ext_resource type="PackedScene" uid="uid://barl4q1kugrmm" path="res://scenes/gameplay/pause-layer/pause-layer.tscn" id="2"]
-[ext_resource type="Script" uid="uid://b83omkj4aqsph" path="res://scenes/gameplay/gameplay.gd" id="5"]
+[ext_resource type="Script" uid="uid://clnensqaofqvj" path="res://scripts/manager/game_manager.gd" id="1_elxb5"]
+[ext_resource type="PackedScene" uid="uid://qq6c6dil3jcl" path="res://scenes/gameplay/widgets/viz2d/card_viz_2d.tscn" id="2_x0t60"]
 
 [node name="Gameplay" type="Node"]
-script = ExtResource("5")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("1")
+[node name="Manager" type="Node" parent="."]
 
-[node name="PauseLayer" parent="." instance=ExtResource("2")]
-visible = false
+[node name="GameManager" type="Node" parent="Manager"]
+script = ExtResource("1_elxb5")
+
+[node name="SaveManager" type="Node" parent="Manager"]
+
+[node name="DeckManager" type="Node" parent="Manager"]
+
+[node name="UIManager" type="Node" parent="Manager"]
+
+[node name="Root" type="Node" parent="."]
+
+[node name="Table" type="Node2D" parent="Root"]
+
+[node name="CardViz2D" parent="Root/Table" instance=ExtResource("2_x0t60")]
+position = Vector2(314, 265)

@@ -61,13 +61,13 @@ func _create_card(_context, _deck, drawn_frag) -> void:
 	# 按项目契约：如果 fragment 是 Card 类型，_context.scope.Add(card) 可用
 	if drawn_frag is Object:
 		var card = drawn_frag
-		var new_card_viz = _context.scope.Add(card)
+		var new_card_viz = _context.scope.add_card(card)
 		new_card_viz.ShowBack()
 
 		if _deck.tag_on != null:
 			for frag in _deck.tag_on:
 				if frag != null:
-					new_card_viz.frag_tree.Add(frag)
+					new_card_viz.frag_tree.add_fragment(frag)
 		if _deck.memory_fragment != null:
 			new_card_viz.frag_tree.memory_fragment = _deck.memory_fragment
 

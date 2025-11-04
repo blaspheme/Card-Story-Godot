@@ -35,18 +35,18 @@ func count(frag, level: int, data) -> int:
 		var gm = Engine.get_singleton("GameManager")
 		if frag == gm.thisAspect:
 			assert(data.scope != null)
-			return level * data.scope.Count(data.this_aspect)
+			return level * data.scope.count(data.this_aspect)
 		elif frag == gm.thisCard:
 			assert(data.scope != null and data.this_card != null)
-			return level * data.scope.Count(data.this_card.card)
+			return level * data.scope.count(data.this_card.card)
 		elif frag == gm.matchedCards:
 			return level * data.matches.size()
 		elif frag == gm.memoryFragment:
 			assert(data.scope != null)
-			return level * data.scope.Count(data.scope.memoryFragment)
+			return level * data.scope.count(data.scope.memoryFragment)
 	# default
 	assert(data.scope != null)
-	return level * data.scope.Count(frag)
+	return level * data.scope.count(frag)
 
 func resolve_fragment(frag, data):
 	if frag == null:
@@ -90,7 +90,7 @@ func resolve_target_cards(target, _scope) -> Array:
 		var frag = target.get("fragment", null)
 		if frag != null:
 			assert(_scope != null)
-			return _scope.FindAll(frag)
+			return _scope.find_all_by_aspect(frag)
 	# 若 target 为自带 cards 的容器，则直接返回
 	if typeof(target) == TYPE_OBJECT and target.has("cards"):
 		return target.cards
@@ -108,5 +108,5 @@ func init_matches(data, keep_matches: bool) -> void:
 		data.matches.append_array(sc.matches)
 		return
 	# not keeping matches: 期望 scope 有 cards
-	assert(typeof(sc) == TYPE_OBJECT and sc.has("cards"))
-	data.matches.append_array(sc.cards)
+	assert(typeof(sc) == TYPE_OBJECT)
+	data.matches.append_array(sc.cards())

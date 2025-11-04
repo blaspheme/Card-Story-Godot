@@ -66,9 +66,9 @@ func destroy(card_viz) -> void:
 		_to_destroy.append(card_viz)
 
 func reset_matches() -> void:
-	if scope != null and "cards" in scope:
+	if scope != null:
 		matches.clear()
-		matches.append_array(scope.cards)
+		matches.append_array(scope.cards())
 	else:
 		matches.clear()
 

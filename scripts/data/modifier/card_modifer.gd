@@ -5,4 +5,4 @@ class_name CardModifier
 @export var target: FragmentData
 @export var fragment: FragmentData
 @export var level: int = 0
-@export var reference: FragmentData
+@export var ref_fragment: FragmentData
