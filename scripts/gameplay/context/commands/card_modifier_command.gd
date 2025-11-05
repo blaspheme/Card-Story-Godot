@@ -1,4 +1,4 @@
-extends "res://scripts/system/core/commands/modifier_command_base.gd"
+extends ModifierCommandBase
 class_name CardModifierCommand
 
 # 卡牌 modifier 的命令实现，承载已评估的数据并执行副作用。

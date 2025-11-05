@@ -11,7 +11,7 @@ static var _modifier_evaluator: ModifierEvaluator = ModifierEvaluator.new()
 static var POOL_MAX = 128
 
 var _data = null
-static var _ContextDataClass = preload("res://scripts/system/core/context_data.gd")
+static var _ContextDataClass = preload("res://scripts/gameplay/context/context_data.gd")
 var _pool_manager: PoolManager = null
 
 # ContextFacade 不再保留对旧 Context 的字段代理。

@@ -11,11 +11,11 @@ class_name ModifierEvaluator
 
 var _fragment_resolver: FragmentResolver = FragmentResolver.new()
 
-var _ActCmdClass = preload("res://scripts/system/core/commands/act_modifier_command.gd")
-var _CardCmdClass = preload("res://scripts/system/core/commands/card_modifier_command.gd")
-var _DeckCmdClass = preload("res://scripts/system/core/commands/deck_modifier_command.gd")
-var _PathCmdClass = preload("res://scripts/system/core/commands/path_modifier_command.gd")
-var _TableCmdClass = preload("res://scripts/system/core/commands/table_modifier_command.gd")
+var _ActCmdClass = preload("res://scripts/gameplay/context/commands/act_modifier_command.gd")
+var _CardCmdClass = preload("res://scripts/gameplay/context/commands/card_modifier_command.gd")
+var _DeckCmdClass = preload("res://scripts/gameplay/context/commands/deck_modifier_command.gd")
+var _PathCmdClass = preload("res://scripts/gameplay/context/commands/path_modifier_command.gd")
+var _TableCmdClass = preload("res://scripts/gameplay/context/commands/table_modifier_command.gd")
 
 func _acquire_cmd(class_ref, pool: PoolManager) -> Object:
 	# 从池中获取命令对象（若提供 pool），否则直接 new

@@ -1,5 +1,6 @@
 extends Node
-class_name GameManager
+
+# Autoload 单例 GameManager
 
 # ===============================
 # 实例化scene
@@ -19,6 +20,9 @@ var card_states: Array = []
 var act_fsms: Array = []
 var pool_manager: PoolManager = null
 
+# ===============================
+# 生命周期方法
+# ===============================
 func _ready() -> void:
 	_init_behavior_system()
 	# 初始化全局 PoolManager，用于跨 ActLogic 实例共享命令对象池
