@@ -263,8 +263,16 @@ func hide_decay_timer() -> void:
 func _on_decay_completed(decay_to_card: CardData) -> void:
 	print("卡片衰败完成: %s -> %s" % [card_data.label if card_data else "未知", decay_to_card.label if decay_to_card else "未知"])
 	
-	# 通过EventBus通知游戏管理器进行卡片转换
-	EventBus.emit("card_decay_completed", [self, decay_to_card])
+	# 如果这张卡在别的卡的堆叠中，先从堆叠中弹出
+	if stack != null and stack.stack_counter:
+		print("从堆叠中弹出衰变卡牌")
+		if stack.stack_counter.handle_stacked_card_decay(self):
+			# 成功弹出后进行转换
+			_transform_self(decay_to_card)
+		return
+	
+	# 转换当前卡片（只转换触发衰变的这张卡）
+	_transform_self(decay_to_card)
 
 # ===============================
 # 公开接口
@@ -280,3 +288,41 @@ func set_card_data(new_card_data: CardData) -> void:
 	
 	# 重新设置卡片
 	setup_card()
+
+
+
+## 转换当前卡片自身
+func _transform_self(new_card_data: CardData) -> void:
+	print("转换当前卡片: %s -> %s" % [card_data.label, new_card_data.label])
+	
+	# 执行衰败完成规则（如果存在）
+	if card_data.on_decay_complete:
+		print("执行衰败完成规则: %s" % card_data.on_decay_complete.resource_path)
+		# TODO: 在这里调用规则系统执行规则
+		# RuleSystem.execute_rule(card_data.on_decay_complete, self)
+	
+	# 转换当前卡片数据
+	set_card_data(new_card_data)
+	
+	# 如果有堆叠，弹出所有与新类型不匹配的卡牌
+	if stack_counter.get_count() > 0:
+		var ejected_cards = stack_counter.eject_mismatched_cards()
+		if ejected_cards.size() > 0:
+			print("弹出了 %d 张不匹配的卡牌" % ejected_cards.size())
+	
+	# 执行衰败进入规则（如果新卡片有此规则）
+	if new_card_data.on_decay_into:
+		print("执行衰败进入规则: %s" % new_card_data.on_decay_into.resource_path)
+		# TODO: 在这里调用规则系统执行规则
+		# RuleSystem.execute_rule(new_card_data.on_decay_into, self)
+	
+	# 播放转换特效
+	_play_transform_effect()
+
+## 播放转换特效
+func _play_transform_effect() -> void:
+	print("在位置 %s 播放转换特效" % global_position)
+	# TODO: 添加粒子特效、闪光等
+	# var effect = preload("res://scenes/effects/transform_effect.tscn").instantiate()
+	# effect.global_position = global_position
+	# get_tree().current_scene.add_child(effect)

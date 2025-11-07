@@ -53,6 +53,9 @@ func push(card_viz: CardViz) -> bool:
 		card_viz.set_process(false)
 		card_viz.set_physics_process(false)
 	card_viz.visible = false
+	
+	# 保持衰变计时器运行（堆叠中的卡牌仍然可以独立衰变）
+	# 衰变计时器会继续运行，当衰变完成时会自动弹出
 	# 更新计数
 	_count += 1
 	# 运行时记录所属堆栈的父卡引用（CardViz 的字段 stack）
@@ -144,6 +147,89 @@ func can_merge(other: CardStack) -> bool:
 	if _count + other._count > MAX_COUNT:
 		return false
 	return _can_stack_with(other._parent_card)
+
+## 获取堆叠中所有卡牌（不弹出，用于遍历）
+func get_all_stacked_cards() -> Array[CardViz]:
+	var cards: Array[CardViz] = []
+	for i in range(get_child_count()):
+		var child = get_child(i)
+		if child is CardViz:
+			cards.append(child as CardViz)
+	return cards
+
+## 当父卡类型改变时，弹出所有不匹配的卡牌
+func eject_mismatched_cards() -> Array[CardViz]:
+	if _parent_card == null or _parent_card.card_data == null:
+		return []
+	
+	print("CardStack: 检查堆叠中不匹配的卡牌，父卡类型: %s" % _parent_card.card_data.label)
+	
+	var ejected_cards: Array[CardViz] = []
+	var cards_to_remove: Array[CardViz] = []
+	
+	# 收集所有需要弹出的卡牌（类型与父卡不匹配的）
+	var stacked_cards = get_all_stacked_cards()
+	for card in stacked_cards:
+		if card.card_data != _parent_card.card_data:
+			cards_to_remove.append(card)
+			print("发现不匹配的卡牌: %s (父卡: %s)" % [card.card_data.label, _parent_card.card_data.label])
+	
+	# 弹出不匹配的卡牌
+	for card in cards_to_remove:
+		# 从堆叠中移除
+		remove_child(card)
+		card.visible = true
+		if card.has_method("set_process"):
+			card.set_process(true)
+			card.set_physics_process(true)
+		
+		# 移动到父卡的父节点
+		var target_parent = _parent_card.get_parent()
+		target_parent.add_child(card)
+		card.global_position = _parent_card.global_position + Vector2(randf_range(-50, 50), randf_range(-50, 50))
+		
+		# 清除堆叠引用
+		card.stack = null
+		_count -= 1
+		
+		ejected_cards.append(card)
+	
+	# 更新UI
+	update_ui()
+	
+	print("弹出了 %d 张不匹配的卡牌，剩余堆叠数量: %d" % [ejected_cards.size(), _count])
+	return ejected_cards
+
+## 处理堆叠中卡牌的衰变（弹出特定卡牌进行转换）
+func handle_stacked_card_decay(decaying_card: CardViz) -> bool:
+	# 检查这张卡是否在当前堆叠中
+	var stacked_cards = get_all_stacked_cards()
+	if not stacked_cards.has(decaying_card):
+		return false
+	
+	print("CardStack: 处理堆叠中卡牌的衰变: %s" % decaying_card.card_data.label)
+	
+	# 弹出这张卡牌
+	remove_child(decaying_card)
+	decaying_card.visible = true
+	if decaying_card.has_method("set_process"):
+		decaying_card.set_process(true)
+		decaying_card.set_physics_process(true)
+	
+	# 移动到父卡的父节点
+	var target_parent = _parent_card.get_parent()
+	target_parent.add_child(decaying_card)
+	decaying_card.global_position = _parent_card.global_position + Vector2(randf_range(-30, 30), randf_range(-30, 30))
+	
+	# 清除堆叠引用
+	decaying_card.stack = null
+	_count -= 1
+	
+	# 更新UI
+	update_ui()
+	
+	print("成功弹出衰变卡牌，剩余堆叠数量: %d" % _count)
+	return true
 
 # ===============================
 # 信号机制

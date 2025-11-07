@@ -10,7 +10,7 @@
 [resource]
 script = ExtResource("3_ene3n")
 decay_to = ExtResource("1_ene3n")
-lifetime = 10.0
+lifetime = 3.0
 label = "Flower"
 image = ExtResource("2_ene3n")
 metadata/_custom_type_script = "uid://d1jfl1jibwccu"

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://b4mpu2vx4lx7k"]
+
+[ext_resource type="Script" uid="uid://bhoj3oie1gjpg" path="res://scripts/data/fragment_data.gd" id="1_r6hed"]
+[ext_resource type="Texture2D" uid="uid://bgihp25c6uxla" path="res://assets/icons/Script.svg" id="2_1xxsd"]
+[ext_resource type="Script" uid="uid://dc60x7mtd6xwq" path="res://scripts/data/rule_data.gd" id="2_6nmdm"]
+[ext_resource type="Script" uid="uid://d1jfl1jibwccu" path="res://scripts/data/card_data.gd" id="3_1xxsd"]
+[ext_resource type="Script" uid="uid://cfs07cxd1cqjm" path="res://scripts/data/slot_data.gd" id="4_52nei"]
+
+[resource]
+script = ExtResource("3_1xxsd")
+image = ExtResource("2_1xxsd")
+metadata/_custom_type_script = "uid://d1jfl1jibwccu"
