@@ -3,18 +3,20 @@
 [ext_resource type="Script" uid="uid://dsspcjuupa5jp" path="res://scripts/gameplay/token/token_viz.gd" id="1_epmlw"]
 [ext_resource type="Resource" uid="uid://ls1vth6pe28m" path="res://resources/data/token/home.tres" id="2_586nv"]
 [ext_resource type="Texture2D" uid="uid://pgo1v2tn7yih" path="res://icon.svg" id="2_m41ne"]
-[ext_resource type="Shader" uid="uid://dxubqahmkwplj" path="res://resources/shaders/ui/card_outline.gdshader" id="3_2m7xr"]
 [ext_resource type="Texture2D" uid="uid://jmbedvxvo54" path="res://assets/sprite/token_border.svg" id="4_2m7xr"]
+[ext_resource type="Shader" uid="uid://d355bst4un70p" path="res://resources/shaders/ui/edge_gradient_border.gdshader" id="4_586nv"]
 [ext_resource type="PackedScene" uid="uid://bb82rjto665im" path="res://scenes/gameplay/widgets/token_timer.tscn" id="5_rfep7"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_epmlw"]
 size = Vector2(200, 200)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_586nv"]
-shader = ExtResource("3_2m7xr")
-shader_parameter/outline_color = Color(1, 0.8, 0.2, 1)
-shader_parameter/outline_strength = 0.0
-shader_parameter/thickness = 2.0
+shader = ExtResource("4_586nv")
+shader_parameter/line_colour = Color(0.15896595, 0.5604857, 0.64935744, 1)
+shader_parameter/line_thickness = 0.04
+shader_parameter/border_visibility = 0.0
+shader_parameter/gradient_intensity = 3.0
+shader_parameter/gradient_steps = 10.0
 
 [node name="TokenViz" type="Node2D"]
 script = ExtResource("1_epmlw")

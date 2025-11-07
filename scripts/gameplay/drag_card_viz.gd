@@ -102,11 +102,11 @@ func _highlight(active: bool) -> void:
 ## 鼠标进入逻辑
 func _on_area_mouse_entered() -> void:
 	_highlight(true)
-	_mat.set_shader_parameter("outline_strength", 1.0)
+	_mat.set_shader_parameter("border_visibility", 1.0)
 
 ## 鼠标退出逻辑
 func _on_area_mouse_exited() -> void:
-	_mat.set_shader_parameter("outline_strength", 0.0)
+	_mat.set_shader_parameter("border_visibility", 0.0)
 	_highlight(false)
 
 # ===============================
