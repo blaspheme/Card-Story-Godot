@@ -1,0 +1,43 @@
+[gd_scene load_steps=4 format=3 uid="uid://bb82rjto665im"]
+
+[ext_resource type="Script" uid="uid://bitjx4cym4baw" path="res://scripts/gameplay/token/token_timer.gd" id="1_rd8g2"]
+[ext_resource type="Shader" uid="uid://oqibbx88gbnj" path="res://resources/shaders/ui/circular_timer.gdshader" id="2_circular"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_n2rdo"]
+shader = ExtResource("2_circular")
+shader_parameter/progress = 0.0
+shader_parameter/color = Color(1, 0.8, 0.2, 1)
+shader_parameter/bg_color = Color(0, 0, 0, 0)
+shader_parameter/thickness = 0.12
+shader_parameter/radius = 0.42
+shader_parameter/edge_smooth = 0.004
+shader_parameter/start_angle = 0.25
+shader_parameter/direction = -1.0
+
+[node name="TokenTimer" type="Node2D"]
+script = ExtResource("1_rd8g2")
+
+[node name="CircularProgress" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_n2rdo")
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -12.0
+offset_right = 50.0
+offset_bottom = 12.0
+size_flags_horizontal = 4
+size_flags_vertical = 1
+theme_override_font_sizes/font_size = 24
+text = "0.0"
+horizontal_alignment = 1
+vertical_alignment = 1

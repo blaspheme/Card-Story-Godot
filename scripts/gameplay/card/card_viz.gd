@@ -38,8 +38,7 @@ func _ready() -> void:
 		decay_timer.decay_completed.connect(_on_decay_completed)
 	
 	# 如果有卡片数据，进行初始化
-	if card_data:
-		setup_card()
+	setup_card()
 
 ## 设置卡片数据和外观
 func setup_card() -> void:

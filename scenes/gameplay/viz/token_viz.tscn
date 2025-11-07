@@ -1,0 +1,50 @@
+[gd_scene load_steps=9 format=3 uid="uid://bo3aon3ewih7e"]
+
+[ext_resource type="Script" uid="uid://dsspcjuupa5jp" path="res://scripts/gameplay/token/token_viz.gd" id="1_epmlw"]
+[ext_resource type="Resource" uid="uid://ls1vth6pe28m" path="res://resources/data/token/home.tres" id="2_586nv"]
+[ext_resource type="Texture2D" uid="uid://pgo1v2tn7yih" path="res://icon.svg" id="2_m41ne"]
+[ext_resource type="Shader" uid="uid://dxubqahmkwplj" path="res://resources/shaders/ui/card_outline.gdshader" id="3_2m7xr"]
+[ext_resource type="Texture2D" uid="uid://jmbedvxvo54" path="res://assets/sprite/token_border.svg" id="4_2m7xr"]
+[ext_resource type="PackedScene" uid="uid://bb82rjto665im" path="res://scenes/gameplay/widgets/token_timer.tscn" id="5_rfep7"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_epmlw"]
+size = Vector2(200, 200)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_586nv"]
+shader = ExtResource("3_2m7xr")
+shader_parameter/outline_color = Color(1, 0.8, 0.2, 1)
+shader_parameter/outline_strength = 0.0
+shader_parameter/thickness = 2.0
+
+[node name="TokenViz" type="Node2D"]
+position = Vector2(324, 203)
+script = ExtResource("1_epmlw")
+token_data = ExtResource("2_586nv")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_epmlw")
+debug_color = Color(0.91352355, 0.5786273, 0.08381411, 0.41960785)
+
+[node name="Image" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(200, 200)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_m41ne")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Background" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_586nv")
+texture = ExtResource("4_2m7xr")
+
+[node name="TokenTimer" parent="." instance=ExtResource("5_rfep7")]
+
+[connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
+[connection signal="mouse_entered" from="Area2D" to="." method="_on_area_2d_mouse_entered"]
+[connection signal="mouse_exited" from="Area2D" to="." method="_on_area_2d_mouse_exited"]

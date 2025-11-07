@@ -20,6 +20,9 @@ var card_states: Array = []
 var act_fsms: Array = []
 var pool_manager: PoolManager = null
 
+# 时间缩放相关
+var time_scale: float = 1.0
+
 # ===============================
 # 生命周期方法
 # ===============================
