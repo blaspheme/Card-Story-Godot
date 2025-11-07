@@ -122,6 +122,21 @@ func _handle_mouse_input(event: InputEventMouseButton) -> void:
 			# 标记事件已处理，防止下层卡片也触发
 			get_viewport().set_input_as_handled()
 
+## 从鼠标事件开始拖拽
+@warning_ignore("unused_parameter")
+func start_drag_from_mouse(_mouse_event: InputEventMouseButton) -> void:
+	if not _can_start_drag():
+		return
+	
+	_start_drag()
+	get_viewport().set_input_as_handled()
+
+## 外部直接启动拖拽（用于堆叠弹出后的拖拽传递）
+func start_drag_directly() -> void:
+	if not _can_start_drag():
+		return
+	_start_drag()
+
 ## 开始拖拽
 func _start_drag() -> void:
 	is_dragging = true
@@ -183,4 +198,3 @@ func _input(event: InputEvent) -> void:
 			_end_drag()
 			# 标记事件已处理
 			get_viewport().set_input_as_handled()
-

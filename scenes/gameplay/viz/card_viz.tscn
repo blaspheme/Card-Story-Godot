@@ -1,11 +1,12 @@
-[gd_scene load_steps=10 format=3 uid="uid://qq6c6dil3jcl"]
+[gd_scene load_steps=11 format=3 uid="uid://qq6c6dil3jcl"]
 
 [ext_resource type="Script" uid="uid://ct12jv14my50w" path="res://scripts/gameplay/card/card_viz.gd" id="1_fi7n1"]
-[ext_resource type="Resource" uid="uid://dgp6abcejnxu8" path="res://resources/data/card/player_card.tres" id="2_iqxif"]
+[ext_resource type="Resource" uid="uid://hsmcnfc340se" path="res://resources/data/card/flower.tres" id="2_iqxif"]
 [ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="3_02ip0"]
 [ext_resource type="Shader" uid="uid://dxubqahmkwplj" path="res://resources/shaders/ui/card_outline.gdshader" id="4_jhmj3"]
 [ext_resource type="Texture2D" uid="uid://ck8b5vmcv5ai2" path="res://assets/sprite/card_border.svg" id="5_nmxfg"]
 [ext_resource type="Texture2D" uid="uid://pgo1v2tn7yih" path="res://icon.svg" id="6_tn6ot"]
+[ext_resource type="Script" uid="uid://hd03dvuv8qae" path="res://scripts/gameplay/card/card_dency.gd" id="7_fi7n1"]
 [ext_resource type="PackedScene" uid="uid://bb2gokljyaa7w" path="res://scenes/gameplay/widgets/stack_counter.tscn" id="7_w6jym"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fjvxj"]
@@ -84,7 +85,6 @@ position = Vector2(100, 150)
 scale = Vector2(0.25, 0.25)
 
 [node name="DaceyTimer" type="Label" parent="."]
-visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -95,6 +95,9 @@ theme_override_font_sizes/font_size = 100
 text = "999"
 horizontal_alignment = 1
 vertical_alignment = 1
+script = ExtResource("7_fi7n1")
+
+[node name="Stack" type="Node" parent="."]
 
 [connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
 [connection signal="mouse_entered" from="Area2D" to="." method="_on_area_2d_mouse_entered"]

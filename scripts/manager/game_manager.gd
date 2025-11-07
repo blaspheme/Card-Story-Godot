@@ -35,6 +35,9 @@ func _ready() -> void:
 	get_tree().connect("node_added", Callable(self, "_on_node_added"))
 	# 监听节点移除以便注销 ActLogic（避免悬挂的引用）
 	get_tree().connect("node_removed", Callable(self, "_on_node_removed"))
+	
+	# 订阅卡片衰败相关事件
+	_subscribe_decay_events()
 
 
 func _process(delta: float) -> void:
@@ -124,3 +127,97 @@ func _on_node_removed(node: Node) -> void:
 	# 当节点从场景树移除时，如果是 ActLogic，则注销以清理 act_fsms 列表
 	if node is ActLogic:
 		unregister_fsm(node)
+
+# ===============================
+# 卡片衰败管理
+# ===============================
+
+## 订阅卡片衰败相关事件
+func _subscribe_decay_events() -> void:
+	EventBus.subscribe("card_decay_completed", _on_card_decay_completed)
+	EventBus.subscribe("card_decay_started", _on_card_decay_started)
+	EventBus.subscribe("card_decay_stopped", _on_card_decay_stopped)
+
+## 处理卡片衰败完成
+func _on_card_decay_completed(card: CardViz, decay_to: CardData) -> void:
+	print("GameManager: 处理卡片衰败完成 - %s -> %s" % [card.card_data.label, decay_to.label])
+	
+	# 执行 on_decay_complete 规则（如果存在）
+	if card.card_data.on_decay_complete:
+		_execute_decay_rule(card, card.card_data.on_decay_complete)
+	
+	# 转换卡片
+	_transform_card(card, decay_to)
+
+## 处理卡片衰败开始
+func _on_card_decay_started(card: CardViz, duration: float, _decay_to: CardData) -> void:
+	print("GameManager: 卡片开始衰败 - %s (持续 %s 秒)" % [card.card_data.label, duration])
+
+## 处理卡片衰败停止
+func _on_card_decay_stopped(card: CardViz) -> void:
+	print("GameManager: 卡片衰败已停止 - %s" % card.card_data.label)
+
+## 执行衰败规则
+func _execute_decay_rule(_card: CardViz, rule: RuleData) -> void:
+	if rule:
+		print("执行衰败规则: %s" % rule.resource_path)
+		# TODO: 在这里调用规则系统执行规则
+		# RuleSystem.execute_rule(rule, card)
+
+## 卡片转换逻辑
+func _transform_card(original_card: CardViz, new_card_data: CardData) -> void:
+	print("转换卡片: %s -> %s" % [original_card.card_data.label, new_card_data.label])
+	
+	# 保存原卡片的状态
+	var position = original_card.global_position
+	var parent = original_card.get_parent()
+	var z_index = original_card.z_index
+	
+	# 如果原卡片在堆叠中，需要特殊处理
+	if original_card.stack != null:
+		_transform_stacked_card(original_card, new_card_data)
+		return
+	
+	# 创建新卡片
+	var new_card = create_card(new_card_data)
+	new_card.global_position = position
+	new_card.z_index = z_index
+	
+	# 执行 on_decay_into 规则（如果新卡片有此规则）
+	if new_card_data.on_decay_into:
+		_execute_decay_rule(new_card, new_card_data.on_decay_into)
+	
+	# 添加到场景
+	parent.add_child(new_card)
+	
+	# 播放转换特效
+	_play_transform_effect(position)
+	
+	# 移除原卡片
+	original_card.queue_free()
+
+## 处理堆叠中卡片的转换
+func _transform_stacked_card(stacked_card: CardViz, new_card_data: CardData) -> void:
+	# 从堆叠中移除
+	var _stack_owner = stacked_card.stack
+	var _new_card = create_card(new_card_data)
+	
+	# TODO: 需要实现堆叠中卡片的替换逻辑
+	print("堆叠中的卡片转换暂未完全实现")
+
+## 创建新卡片
+func create_card(card_data: CardData) -> CardViz:
+	var card_instance = card_viz.instantiate() as CardViz
+	card_instance.card_data = card_data
+	# 如果卡片已经在场景中，需要手动调用setup_card
+	if card_instance.is_inside_tree():
+		card_instance.setup_card()
+	return card_instance
+
+## 播放转换特效
+func _play_transform_effect(position: Vector2) -> void:
+	print("在位置 %s 播放转换特效" % position)
+	# TODO: 添加粒子特效、闪光等
+	# var effect = preload("res://scenes/effects/transform_effect.tscn").instantiate()
+	# effect.global_position = position
+	# get_tree().current_scene.add_child(effect)
