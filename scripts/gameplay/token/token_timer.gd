@@ -13,23 +13,22 @@ signal time_up
 # ===============================
 # 导出属性
 # ===============================
-## 文本显示组件的节点路径
-@onready var text_label_path = $Label
-## 圆形进度条组件的节点路径
-@onready var circular_progress_path = $CircularProgress
+## Tick更新间隔（秒）
+@export var tick_interval: float = 0.01
 
 # ===============================
 # 私有属性
 # ===============================
-var _duration: float = 3
+var _duration: float = 0.0
 var _elapsed_time: float = 0.0
 var _following_timer: TokenTimer = null
 var _enabled: bool = false
 
 # 节点引用（在_ready中初始化）
-var _text_label: Label
-var _circular_progress: ColorRect
-var _circular_material: ShaderMaterial
+@onready var _text_label: Label = $Label
+@onready var _circular_progress: ColorRect = $CircularProgress
+@onready var _circular_material: ShaderMaterial = $CircularProgress.material
+var _tick_timer: Timer
 
 # 回调函数列表（替代Unity的UnityEvent）
 var _time_up_callbacks: Array[Callable] = []
@@ -55,29 +54,24 @@ var duration: float:
 # 生命周期方法
 # ===============================
 func _ready() -> void:
-	# 初始化节点引用
-	_text_label = text_label_path
-	_circular_progress = circular_progress_path
-	
-	# 获取圆形进度条的着色器材质
-	if _circular_progress and _circular_progress.material:
-		_circular_material = _circular_progress.material as ShaderMaterial
-		if _circular_material == null:
-			print("警告: CircularProgress的材质不是ShaderMaterial类型")
-	else:
-		print("警告: CircularProgress节点或其材质未找到")
+
+	# 创建并配置内部tick计时器
+	_tick_timer = Timer.new()
+	_tick_timer.wait_time = tick_interval
+	_tick_timer.one_shot = false
+	add_child(_tick_timer)
+	_tick_timer.connect("timeout", Callable(self, "_on_tick"))
 	
 	# 初始化显示
 	if _circular_material:
 		_circular_material.set_shader_parameter("progress", 0.0)
-	_enabled = true
 
-func _process(delta: float) -> void:
+func _on_tick() -> void:
 	if not _enabled:
 		return
 	
-	# 更新已用时间（应用时间缩放）	
-	_elapsed_time += delta * GameManager.time_scale
+	# 更新已用时间（应用时间缩放）
+	_elapsed_time += _tick_timer.wait_time * GameManager.time_scale
 	
 	# 更新显示
 	_update_display(time_left)
@@ -85,7 +79,14 @@ func _process(delta: float) -> void:
 	# 检查是否完成
 	if time_left <= 0.0:
 		if _circular_material:
-			_circular_material.set_shader_parameter("progress", 1.0)  # 圆形进度条满
+			_circular_material.set_shader_parameter("progress", 1.0)
+		
+		# 停止计时器
+		_tick_timer.stop()
+		
+		# 隐藏进度条
+		_circular_progress.visible = false
+		_text_label.visible = false
 		
 		# 如果不是跟随计时器，重置状态
 		if _following_timer == null:
@@ -104,12 +105,11 @@ func _process(delta: float) -> void:
 ## @param time: 计时时长（秒）
 ## @param callback: 时间到达时的回调函数（可选）
 func start_timer(time: float, callback: Callable = Callable()) -> void:
+	_circular_progress.visible = true
+	_text_label.visible = true
+	
 	_elapsed_time = 0.0
 	_duration = time
-	
-	# 开发模式下时间缩放（对应Unity的GameManager.Instance.DevTime）
-	if OS.is_debug_build() and GameManager and GameManager.has_method("get_dev_time"):
-		_duration = GameManager.get_dev_time(time)
 	
 	_enabled = true
 	_following_timer = null
@@ -118,6 +118,11 @@ func start_timer(time: float, callback: Callable = Callable()) -> void:
 	_time_up_callbacks.clear()
 	if callback.is_valid():
 		_time_up_callbacks.append(callback)
+	
+	# 启动tick计时器
+	if not _tick_timer.is_stopped():
+		_tick_timer.stop()
+	_tick_timer.start()
 	
 	# 初始显示更新
 	_update_display(time)
@@ -162,6 +167,7 @@ func _update_display(time: float) -> void:
 		_circular_material.set_shader_parameter("progress", circular_progress)
 	else:
 		_circular_material.set_shader_parameter("progress", 1.0)  # 时间结束，圆形满
+
 
 ## 触发所有时间到达回调
 func _invoke_time_up_callbacks() -> void:

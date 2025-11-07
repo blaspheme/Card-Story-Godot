@@ -17,7 +17,6 @@ shader_parameter/outline_strength = 0.0
 shader_parameter/thickness = 2.0
 
 [node name="TokenViz" type="Node2D"]
-position = Vector2(324, 203)
 script = ExtResource("1_epmlw")
 token_data = ExtResource("2_586nv")
 

@@ -9,6 +9,7 @@ class_name TokenViz
 @onready var front_image: TextureRect = $Image
 @onready var background: Sprite2D = $Background
 @onready var mat: ShaderMaterial = $Background.material
+@onready var token_timer: TokenTimer = $TokenTimer
 
 # ===============================
 # 生命周期方法
@@ -19,6 +20,7 @@ func _ready() -> void:
 	
 	# 如果有卡片数据，进行初始化
 	setup_data()
+	token_timer.start_timer(5)
 	
 	
 ## 设置卡片数据和外观
@@ -45,7 +47,7 @@ func _get_background() -> Node2D:
 func _get_material() -> ShaderMaterial:
 	return mat
 
-## 检查是否允许拖拽（重写以添加堆叠拖拽检查）
+## 检查是否允许拖拽、
 func _can_start_drag() -> bool:
 	# 始终允许拖拽，具体的弹出逻辑在_on_drag_started中处理
 	return true
