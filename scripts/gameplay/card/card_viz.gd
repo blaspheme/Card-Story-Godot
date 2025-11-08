@@ -15,11 +15,11 @@ class_name CardViz
 # ===============================
 @onready var area: Area2D = $Area2D
 @onready var frag_tree: FragTree = $Root
-@onready var title_label: Label = $Front/VBoxContainer/Title
-@onready var front_image: TextureRect = $Front/VBoxContainer/Image
-@onready var back_image: TextureRect = $Back
-@onready var background: Sprite2D = $Background
-@onready var mat: ShaderMaterial = $Background.material
+@onready var title_label: Label = $Visuals/Front/VBoxContainer/Title
+@onready var front_image: TextureRect = $Visuals/Front/VBoxContainer/Image
+@onready var back_image: TextureRect = $Visuals/Back
+@onready var background: Sprite2D = $Visuals/Background
+@onready var mat: ShaderMaterial = $Visuals/Background.material
 @onready var stack_counter: CardStack = $StackCounter
 @onready var decay_timer: CardDency = $DaceyTimer
 
@@ -90,7 +90,7 @@ func can_stack_with(other_card: CardViz) -> bool:
 # 堆叠交互方法
 # ===============================
 
-## 弹出一张卡（类似Unity的Yield）
+## 弹出一张卡
 func yield_card() -> CardViz:
 	if stack_counter.get_count() > 0:
 		return stack_counter.pop()

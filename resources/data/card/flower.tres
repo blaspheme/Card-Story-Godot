@@ -1,6 +1,5 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=7 format=3 uid="uid://hsmcnfc340se"]
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://hsmcnfc340se"]
 
-[ext_resource type="Resource" uid="uid://dgp6abcejnxu8" path="res://resources/data/card/player_card.tres" id="1_ene3n"]
 [ext_resource type="Script" uid="uid://bhoj3oie1gjpg" path="res://scripts/data/fragment_data.gd" id="1_nh068"]
 [ext_resource type="Texture2D" uid="uid://pgo1v2tn7yih" path="res://icon.svg" id="2_ene3n"]
 [ext_resource type="Script" uid="uid://dc60x7mtd6xwq" path="res://scripts/data/rule_data.gd" id="2_k6lec"]
@@ -9,8 +8,6 @@
 
 [resource]
 script = ExtResource("3_ene3n")
-decay_to = ExtResource("1_ene3n")
-lifetime = 3.0
 label = "Flower"
 image = ExtResource("2_ene3n")
 metadata/_custom_type_script = "uid://d1jfl1jibwccu"

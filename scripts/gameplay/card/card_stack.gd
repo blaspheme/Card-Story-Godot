@@ -69,17 +69,19 @@ func pop() -> CardViz:
 	var top_card := _top()
 	if top_card == null:
 		return null
+	
 	# 将卡设为可见并恢复处理
 	top_card.visible = true
 	if top_card.has_method("set_process"):
 		top_card.set_process(true)
 		top_card.set_physics_process(true)
+	
 	# 从堆栈移除并把父级设为场景中的原位（此处将其父设为父卡的父节点，通常是 Table 节点）
 	var target_parent := _parent_card.get_parent()
 	remove_child(top_card)
 	target_parent.add_child(top_card)
-	# 将卡放到父卡所在位置（局部坐标）
 	top_card.global_position = _parent_card.global_position
+	
 	# 更新计数与堆引用
 	_count -= 1
 	top_card.stack = null

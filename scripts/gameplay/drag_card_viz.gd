@@ -140,7 +140,8 @@ func start_drag_directly() -> void:
 ## 开始拖拽
 func _start_drag() -> void:
 	is_dragging = true
-	drag_offset = get_local_mouse_position()
+	# 使用全局鼠标位置和全局卡片位置计算偏移，避免父节点变化导致的坐标系问题
+	drag_offset = get_global_mouse_position() - global_position
 	if _tween:
 		_tween.kill()
 	
@@ -186,8 +187,8 @@ func _input(event: InputEvent) -> void:
 		return
 	
 	if event is InputEventMouseMotion:
-		# 鼠标移动时更新卡牌位置
-		position = get_global_mouse_position() - drag_offset
+		# 鼠标移动时更新卡牌位置（使用全局坐标计算）
+		global_position = get_global_mouse_position() - drag_offset
 		# 标记事件已处理，防止其他节点响应
 		get_viewport().set_input_as_handled()
 	

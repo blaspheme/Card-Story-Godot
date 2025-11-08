@@ -6,9 +6,9 @@ class_name TokenViz
 # SceneTree引用
 # ===============================
 @onready var area: Area2D = $Area2D
-@onready var front_image: TextureRect = $Image
-@onready var background: Sprite2D = $Background
-@onready var mat: ShaderMaterial = $Background.material
+@onready var front_image: TextureRect = $Visuals/Image
+@onready var background: Sprite2D = $Visuals/Background
+@onready var mat: ShaderMaterial = $Visuals/Background.material
 @onready var token_timer: TokenTimer = $TokenTimer
 
 # ===============================
