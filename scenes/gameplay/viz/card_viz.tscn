@@ -101,8 +101,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 script = ExtResource("7_fi7n1")
 
-[node name="Stack" type="Node" parent="."]
-
 [connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
 [connection signal="mouse_entered" from="Area2D" to="." method="_on_area_2d_mouse_entered"]
 [connection signal="mouse_exited" from="Area2D" to="." method="_on_area_2d_mouse_exited"]

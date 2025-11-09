@@ -21,35 +21,6 @@ func after_test() -> void:
 	pass
 
 
-## 测试：获取指定类型的直接子节点
-func test_get_children_of_type() -> void:
-	# 创建测试场景
-	var parent := Node.new()
-	var child_a1 := TestNodeA.new()
-	var child_a2 := TestNodeA.new()
-	var child_b := TestNodeB.new()
-	var regular_node := Node.new()
-	
-	parent.add_child(child_a1)
-	parent.add_child(child_a2)
-	parent.add_child(child_b)
-	parent.add_child(regular_node)
-	
-	# 测试获取所有子节点
-	var all_children := NodeUtils.get_children_of_type(parent, null)
-	assert_int(all_children.size()).is_equal(4)
-	
-	# 测试获取指定类型
-	var type_a_children := NodeUtils.get_children_of_type(parent, TestNodeA)
-	assert_int(type_a_children.size()).is_equal(2)
-	
-	var type_b_children := NodeUtils.get_children_of_type(parent, TestNodeB)
-	assert_int(type_b_children.size()).is_equal(1)
-	
-	# 清理
-	parent.queue_free()
-
-
 ## 测试：获取所有父节点
 func test_get_parents() -> void:
 	# 创建多层父子关系
@@ -200,7 +171,7 @@ func test_find_children_recursive() -> void:
 	level2.add_child(non_target)
 	
 	# 递归查找所有 TestNodeA
-	var found := NodeUtils.find_children_recursive(root, TestNodeA)
+	var found := NodeUtils.find_children_recursive(root, TestNodeA, true)
 	assert_int(found.size()).is_equal(3)
 	
 	# 确认找到的是正确的节点
@@ -208,54 +179,6 @@ func test_find_children_recursive() -> void:
 	assert_bool(found.has(target2)).is_true()
 	assert_bool(found.has(target3)).is_true()
 	assert_bool(found.has(non_target)).is_false()
-	
-	# 清理
-	root.queue_free()
-
-
-## 测试：边界情况 - 空节点断言
-func test_assert_null_node() -> void:
-	# 这些调用应该触发断言失败
-	# 注意：在实际测试中，断言失败会终止测试，所以这里只是文档说明
-	
-	# 以下代码会触发断言（已注释）：
-	# NodeUtils.get_children_of_type(null, Node)
-	# NodeUtils.get_parents(null)
-	# NodeUtils.get_parent_of_type(null, Node)
-	# NodeUtils.add_child_safe(null, Node.new())
-	# NodeUtils.find_children_recursive(null, Node)
-	
-	# 实际测试中我们验证非空情况正常工作
-	var node := Node.new()
-	var result := NodeUtils.get_children_of_type(node, null)
-	assert_array(result).is_not_null()
-	node.queue_free()
-
-
-## 测试：性能测试 - 大量节点
-func test_performance_large_tree() -> void:
-	var root := Node.new()
-	var child_count := 100
-	
-	# 创建大量子节点
-	for i in range(child_count):
-		var child: Node
-		if i % 2 == 0:
-			child = TestNodeA.new()
-		else:
-			child = TestNodeB.new()
-		root.add_child(child)
-	
-	# 测试查找性能
-	var start_time := Time.get_ticks_msec()
-	var found := NodeUtils.get_children_of_type(root, TestNodeA)
-	var elapsed := Time.get_ticks_msec() - start_time
-	
-	# 验证结果正确
-	assert_int(found.size()).is_equal(50)
-	
-	# 性能应该在合理范围内（100ms 以内）
-	assert_bool(elapsed < 100).is_true()
 	
 	# 清理
 	root.queue_free()

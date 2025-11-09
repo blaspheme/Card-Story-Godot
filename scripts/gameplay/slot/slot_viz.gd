@@ -38,7 +38,7 @@ var first_slot: bool = false
 # 私有属性
 # ===============================
 var _slotted_card: CardViz = null
-var _act_window = null  # ActWindow 引用，在 Awake 时通过 get_parent 或外部设置
+var _act_window = null  # ActWindow 引用
 var _grab_listener_id: int = -1  # EventBus 监听器 ID
 
 # ===============================
@@ -62,13 +62,6 @@ func _ready() -> void:
 	
 	# 获取父 ActWindow（如果存在）
 	_act_window = _find_act_window()
-	
-	# 连接 Area2D 信号用于拖拽检测
-	if area:
-		area.input_event.connect(_on_area_input_event)
-		area.mouse_entered.connect(_on_area_mouse_entered)
-		area.mouse_exited.connect(_on_area_mouse_exited)
-	
 
 
 func _exit_tree() -> void:
@@ -197,7 +190,7 @@ func slot_card_logical(card: CardViz) -> void:
 	# 发送信号
 	card_slotted.emit(card)
 
-## 物理插入：Parent 到槽位、设置位置、隐藏阴影
+## 物理插入
 func slot_card_physical(card: CardViz) -> void:
 	if card == null or not visible:
 		return
@@ -224,10 +217,6 @@ func unslot_card() -> CardViz:
 	# card.is_free = true
 	if card.has_method("set_interactive"):
 		card.set_interactive(true)
-	
-	# 恢复阴影
-	if card.has_method("cast_shadow"):
-		card.cast_shadow(true)
 	
 	# 从 ActWindow 移除 fragments
 	if _act_window != null and _act_window.has_method("remove_fragment") and slot_data != null:

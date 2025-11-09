@@ -1,6 +1,9 @@
 class_name FragmentData
 extends Resource
 
+# ===============================
+# 属性定义
+# ===============================
 @export var label : String
 @export var image : Texture2D
 ## 没有设置 image 时候的颜色
@@ -23,3 +26,7 @@ extends Resource
 @export_category("Deck")
 ## 可选关联牌堆（例如卡关联的 Deck）
 @export var deck: DeckData
+
+# ===============================
+# 公开方法
+# ===============================

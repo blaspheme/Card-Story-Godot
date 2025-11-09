@@ -1,57 +1,57 @@
 extends Node
 class_name FragTree
 
+# ===============================
+# 层级化的 Fragment 和 Card 容器系统，用于管理游戏中的资源、卡牌集合和它们之间的关系
+# ===============================
+## 本地碎片列表：当前节点直接持有的碎片（不包括子节点）
+@export var local_fragments: Array[HeldFragmentData] = []
+## 本地卡牌：当前节点直接关联的单张卡牌（特殊用途）
+@export var local_card: NodePath
+## 匹配卡牌列表：满足某些条件的卡牌引用
+@export var matches: Array[CardViz] = []
+## 记忆碎片：保存上一次操作的碎片引用
+@export var memory_fragment: FragmentData = null
+## 自由标记：标记当前容器是否"可用/自由"
+@export var free: bool = false
+## 暂停标记：控制子卡牌的衰变计时器
+@export var pause: bool = false
+## Unity迁移而来的兼容字段
+var enabled :bool = true
+
+@onready var _local_card_node: CardViz = get_node(local_card) if (local_card != null and str(local_card) != "") else null
+
+# ===============================
+# 信号
+# ===============================
 signal on_create_card(card_viz)
 signal change_event()
-
-@export var local_fragments: Array[HeldFragmentData] = []
-@export var local_card: NodePath
-@export var matches: Array[CardViz] = []
-@export var memory_fragment: FragmentData = null
-@export var free: bool = false
-@export var pause: bool = false
-
-@onready var _local_card_node = get_node(local_card) if (local_card != null and str(local_card) != "") else null
 
 # ===============================
 # 实际方法
 # ===============================
 
-# 返回包含本节点及所有启用子 FragTree 下的 CardViz（递归）
-func cards() -> Array[CardViz]:
-	var out: Array[CardViz] = []
-	_collect_cards_recursive(self, out)
-	if _local_card_node != null:
-		out.append(_local_card_node)
-	return out
+## 返回包含本节点及所有 CardViz（递归）
+func cards() -> Array[CardViz]: return _get_all_cards(true)
 
-# 仅返回作为直接子节点的 CardViz（非递归）
-func direct_cards() -> Array[CardViz]:
-	var out: Array[CardViz] = []
-	for child in get_children():
-		if child.get_class() == "CardViz":
-			out.append(child)
-	if _local_card_node != null:
-		out.append(_local_card_node)
-	return out
+## 仅返回作为直接子节点的 CardViz（非递归）
+func direct_cards() -> Array[CardViz]: return _get_all_cards(false)
 
-# 返回仅 free 的 CardViz
+## 返回仅 free 的 CardViz
 func free_cards() -> Array:
 	var all = cards()
-	return all.filter(func(c): return c.free)
+	return all.filter(func(c:CardViz): return c.free)
 
-# fragments 与 free_fragments：合并所有子 FragTree 的 local_fragments
-func fragments() -> Array:
-	return _get_fragments(false)
+## fragments 与 free_fragments：合并所有子 FragTree 的 local_fragments
+func fragments() -> Array: return _get_fragments(false)
 
-func free_fragments() -> Array:
-	return _get_fragments(true)
-
+## 自由碎片：只统计 free=true 的 FragTree 中的碎片
+func free_fragments() -> Array: return _get_fragments(true)
 
 func clear() -> void:
 	matches.clear()
 	local_fragments.clear()
-	emit_signal("change_event")
+	on_change()
 
 # 简单封装的方法（保持与原 API 接口一致）
 func add_fragment(fragment) -> void:
@@ -223,27 +223,6 @@ func count(item, only_free: bool=false) -> int:
 
 	return 0
 
-func save() -> Dictionary:
-	var out = {}
-	out.matches = []
-	for card_viz in matches:
-		out.matches.append(card_viz.get_instance_id())
-	out.local_fragments = local_fragments
-	out.memory_fragment = memory_fragment
-	out.free = free
-	return out
-
-func load(saved: Dictionary) -> void:
-	matches.clear()
-	for id in saved.matches:
-		# SaveManager 风格适配器需存在于项目中
-		if Engine.has_singleton("SaveManager"):
-			var sm = Engine.get_singleton("SaveManager")
-			if sm.has_method("card_from_id"):
-				matches.append(sm.card_from_id(id))
-	local_fragments = saved.local_fragments
-	memory_fragment = saved.memory_fragment
-	free = saved.free
 
 func on_change() -> void:
 	emit_signal("change_event")
@@ -268,26 +247,21 @@ func interpolate_string(source: String) -> String:
 # ===============================
 # 内部方法
 # ===============================
+## 获取全部卡
+func _get_all_cards(recursive: bool) -> Array[CardViz]:
+	var out: Array[CardViz] = NodeUtils.find_children_recursive(self, "CardViz", recursive)
+	if _local_card_node != null:
+		out.append(_local_card_node)
+	return out
 
-func _collect_cards_recursive(node: Node, out: Array) -> void:
-	for child in node.get_children():
-		# 以字符串判断类型以避免强依赖（但一般项目会有 CardViz 类）
-		if child.get_class() == "CardViz":
-			out.append(child)
-		# 继续递归
-		_collect_cards_recursive(child, out)
-
+## 获取所有的 FragTree
 func _get_fragments(only_free: bool) -> Array[HeldFragmentData]:
 	var out: Array[HeldFragmentData] = []
-	# 遍历自身及子 FragTree 节点
-	var stack: Array = [self]
-	while stack.size() > 0:
-		var node = stack.pop_back()
-		if node is FragTree:
-			if not only_free or node.free:
-				for frag in node.local_fragments:
-					# frag 预期为 Dictionary 或自定义 Resource，直接追加并合并计数需在实现中完成
-					out.append(frag)
-		for c in node.get_children():
-			stack.append(c)
+	var results: Array[FragTree] = NodeUtils.find_children_recursive(self, "FragTree", true)
+	for fragtree in results:
+		if not fragtree.enabled:
+			continue
+		if not only_free or fragtree.free:
+				for l in fragtree.local_fragments:
+					HeldFragmentData.adjust_in_list(out, l.fragment, l.count)
 	return out

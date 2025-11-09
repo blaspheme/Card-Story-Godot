@@ -7,8 +7,6 @@ class_name CardViz
 # 导出变量
 ## 卡牌的数据资源
 @export var card_data: CardData
-## Table上卡牌尺寸
-@export var cell_count: Vector2i = Vector2i.ONE
 
 # ===============================
 # SceneTree引用
@@ -164,17 +162,19 @@ func _check_drop_targets() -> void:
 	for result in results:
 		var collider: Area2D = result["collider"] as Area2D
 		if collider and collider != area:  # 不是自己的Area2D
+			# 检查是否是其他卡片
 			var potential_target := collider.get_parent() as CardViz
 			if potential_target and potential_target != self and potential_target.z_index > highest_z_index:
 				highest_z_index = potential_target.z_index
 				target_card = potential_target
 	
-	# 尝试放置到目标卡片上
+	# 尝试堆叠到卡片
 	if target_card:
 		if target_card.accept_dropped_card(self):
 			print("成功堆叠到卡片: ", target_card.card_data.label if target_card.card_data else "未命名")
 		else:
 			print("无法堆叠到目标卡片")
+	# 如果没有找到目标卡片，卡片保持在当前拖拽结束的位置（自由放置）
 
 # ===============================
 # 信号回调（连接到场景中的信号）

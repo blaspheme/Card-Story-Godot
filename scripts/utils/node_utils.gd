@@ -1,17 +1,19 @@
 class_name NodeUtils
 extends Object
 
-## 获取指定节点的所有直接子节点（可按类型过滤）
-## @param node: 要搜索的节点
-## @param type_class: 类型类（Script 或 GDScript 类），为 null 则返回所有子节点
-## @return: 符合类型的子节点数组
-static func get_children_of_type(node: Node, type_class: Variant = null) -> Array[Node]:
-	assert(node != null, "node_utils.get_children_of_type: node 不能为 null")
-	
-	var result: Array[Node] = []
+## 递归查找某类型的所有子节点（深层）
+## @param node: 起始节点
+## @param type_class: 要查找的类型
+## @param recursive: 是否递归
+## @return: 所有匹配的子节点数组（深度优先）
+static func find_children_recursive(node: Node, type_class: Variant, recursive:bool = false) -> Array:
+	# 返回一个通用数组；数组元素在运行时会是由 `type_class` 指定的类型
+	var result: Array = []
 	for child in node.get_children():
-		if type_class == null or is_instance_of(child, type_class):
+		if is_instance_of(child, type_class):
 			result.append(child)
+		if recursive:
+			result.append_array(find_children_recursive(child, type_class, recursive))
 	return result
 
 
@@ -78,19 +80,3 @@ static func delete_node_safe(node: Node) -> void:
 		return
 	if not node.is_queued_for_deletion():
 		node.queue_free()
-
-
-## 递归查找某类型的所有子节点（深层）
-## @param node: 起始节点
-## @param type_class: 要查找的类型
-## @return: 所有匹配的子节点数组（深度优先）
-static func find_children_recursive(node: Node, type_class: Variant) -> Array[Node]:
-	assert(node != null, "node_utils.find_children_recursive: node 不能为 null")
-	assert(type_class != null, "node_utils.find_children_recursive: type_class 不能为 null")
-	
-	var result: Array[Node] = []
-	for child in node.get_children():
-		if is_instance_of(child, type_class):
-			result.append(child)
-		result.append_array(find_children_recursive(child, type_class))
-	return result
