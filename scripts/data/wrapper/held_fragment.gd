@@ -7,16 +7,13 @@ class_name HeldFragmentData
 @export var fragment: FragmentData
 @export var count: int = 1
 
-# ===============================
-# 内部方法
-# ===============================
+#region 内部方法
 func _init(_fragment: FragmentData = null, _count: int = 1) -> void:
 	fragment = _fragment
 	count = _count
+#endregion
 
-# ===============================
-# 公开方法
-# ===============================
+#region 公开方法
 static func adjust_in_list(list: Array[HeldFragmentData], _fragment: FragmentData, level: int) -> int:
 	if list == null or _fragment == null:
 		return 0
@@ -48,3 +45,4 @@ func to_fragment(): return fragment
 func get_count() -> int: return count
 
 func hidden() -> bool: return fragment.hidden
+#endregion

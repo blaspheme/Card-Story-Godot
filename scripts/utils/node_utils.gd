@@ -36,9 +36,6 @@ static func get_parents(node: Node) -> Array[Node]:
 ## @param type_class: 要查找的类型
 ## @return: 第一个匹配的父节点，未找到返回 null
 static func get_parent_of_type(node: Node, type_class: Variant) -> Node:
-	assert(node != null, "node_utils.get_parent_of_type: node 不能为 null")
-	assert(type_class != null, "node_utils.get_parent_of_type: type_class 不能为 null")
-	
 	var current = node.get_parent()
 	while current:
 		if is_instance_of(current, type_class):

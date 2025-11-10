@@ -1,6 +1,7 @@
 extends Node
 
 # Autoload 单例 GameManager
+var root: FragTree
 
 # ===============================
 # 实例化scene
@@ -23,9 +24,7 @@ var pool_manager: PoolManager = null
 # 时间缩放相关
 var time_scale: float = 1.0
 
-# ===============================
-# 生命周期方法
-# ===============================
+#region 生命周期方法
 func _ready() -> void:
 	_init_behavior_system()
 	# 初始化全局 PoolManager，用于跨 ActLogic 实例共享命令对象池
@@ -69,6 +68,8 @@ func _fixed_update(dt: float) -> void:
 	## 3) 可选：RuleSystem 轮询或响应式调用由 FSM 调用
 	## 4) 清理/回收
 	#_cleanup_expired_states()
+#endregion
+
 
 func register_card_state(state) -> void:
 	if not card_states.has(state):
@@ -130,6 +131,34 @@ func _on_node_removed(node: Node) -> void:
 	# 当节点从场景树移除时，如果是 ActLogic，则注销以清理 act_fsms 列表
 	if node is ActLogic:
 		unregister_fsm(node)
+
+#region Card管理
+## 创建新卡片
+func create_card(card_data: CardData) -> CardViz:
+	if not allowed_to_create(card_data):
+		return null
+	var card_instance = card_viz.instantiate() as CardViz
+	card_instance.card_data = card_data
+	# 如果卡片已经在场景中，需要手动调用setup_card
+	if card_instance.is_inside_tree():
+		card_instance.setup_card()
+	return card_instance
+
+
+## 返回是否允许创建该 Card
+func allowed_to_create(card: CardData) -> bool:
+	if card == null:
+		return true
+	# 非 unique 卡总是允许
+	if not card.unique:
+		return true
+	# unique 卡：仅在 root 中不存在该 Card 时允许
+	return root != null and root.count_card(card) == 0
+
+#endregion
+
+
+
 
 # ===============================
 # 卡片衰败管理
@@ -207,15 +236,6 @@ func _transform_stacked_card(stacked_card: CardViz, new_card_data: CardData) -> 
 	
 	# TODO: 需要实现堆叠中卡片的替换逻辑
 	print("堆叠中的卡片转换暂未完全实现")
-
-## 创建新卡片
-func create_card(card_data: CardData) -> CardViz:
-	var card_instance = card_viz.instantiate() as CardViz
-	card_instance.card_data = card_data
-	# 如果卡片已经在场景中，需要手动调用setup_card
-	if card_instance.is_inside_tree():
-		card_instance.setup_card()
-	return card_instance
 
 ## 播放转换特效
 func _play_transform_effect(position: Vector2) -> void:

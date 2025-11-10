@@ -12,12 +12,9 @@
 
 [node name="Root" type="Node" parent="."]
 script = ExtResource("2_2p25t")
-local_fragments = null
-local_card = null
-free = Callable()
-pause = null
 
 [node name="Table" type="Node2D" parent="Root"]
+script = ExtResource("2_2p25t")
 
 [node name="CardViz1" parent="Root/Table" instance=ExtResource("2_x0t60")]
 position = Vector2(837, 381)
@@ -33,9 +30,9 @@ position = Vector2(583, 199)
 [node name="TokenViz" parent="Root/Table" instance=ExtResource("4_m3hu3")]
 position = Vector2(551, 719)
 
+[node name="SlotViz" parent="Root/Table" instance=ExtResource("5_q64rj")]
+position = Vector2(940, 820)
+
 [node name="WindowPlane" type="Node" parent="Root"]
 
 [node name="CardDragPlane" type="Node" parent="Root"]
-
-[node name="SlotViz" parent="." instance=ExtResource("5_q64rj")]
-position = Vector2(940, 820)

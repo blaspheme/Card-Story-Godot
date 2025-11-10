@@ -44,7 +44,7 @@ func setup_card() -> void:
 		return
 	
 	# 卡牌特有的初始化
-	title_label.text = card_data.label
+	title_label.text = card_data.label.get_text()
 	front_image.texture = card_data.image
 	back_image.texture = card_data.image
 	
@@ -55,10 +55,7 @@ func setup_card() -> void:
 	# 检查是否需要开始衰败
 	_check_and_start_decay()
 
-# ===============================
-# 实现父类抽象方法
-# ===============================
-
+#region 实现父类抽象方法
 ## 获取 Area2D 节点
 func _get_area() -> Area2D:
 	return area
@@ -76,14 +73,7 @@ func _can_start_drag() -> bool:
 	# 始终允许拖拽，具体的弹出逻辑在_on_drag_started中处理
 	return true
 
-## 检查是否可以与另一张卡堆叠
-func can_stack_with(other_card: CardViz) -> bool:
-	if other_card == null or other_card == self:
-		return false
-	
-	# 检查卡牌类型是否相同（你可以根据项目需求修改这个条件）
-	return card_data == other_card.card_data
-
+#endregion
 # ===============================
 # 堆叠交互方法
 # ===============================
@@ -107,6 +97,14 @@ func accept_dropped_card(dropped_card: CardViz) -> bool:
 	else:
 		# 将单张卡加入当前堆叠
 		return stack_counter.push(dropped_card)
+
+## 检查是否可以与另一张卡堆叠
+func can_stack_with(other_card: CardViz) -> bool:
+	if other_card == null or other_card == self:
+		return false
+	
+	# 检查卡牌类型是否相同（你可以根据项目需求修改这个条件）
+	return card_data == other_card.card_data
 
 # ===============================
 # 重写父类钩子方法

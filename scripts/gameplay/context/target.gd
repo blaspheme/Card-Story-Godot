@@ -6,9 +6,9 @@ enum Kind { NONE, FRAGMENT, CARDVIZ, CARD_LIST }
 
 # Public fields (轻量数据表示，不做深拷贝)
 var kind: int = Kind.NONE
-var fragment = null    # Resource / Fragment
+var fragment: FragmentData = null 
 var card = null        # CardViz
-var cards: Array = []
+var cards: Array[CardViz] = []
 
 # 可选构造参数：Fragment / CardViz / Array[CardViz]
 func _init(value = null) -> void:
