@@ -72,9 +72,11 @@ func remove_aspect(_aspect: AspectData) -> void: adjust_aspect(_aspect, -1)
 
 func adjust_aspect(_aspect: AspectData, _level: int) -> int:
 	if _aspect != null:
-		var _count = _aspect.adjust_in_list(local_fragments, _level)
+		_aspect.adjust_in_list(local_fragments, _level)
 		on_change()
-		return _count
+		# 返回调整后的总计数
+		var found = local_fragments.filter(func(hf): return hf.fragment == _aspect)
+		return found[0].count if found.size() > 0 else 0
 	else:
 		return 0
 
@@ -115,9 +117,9 @@ func remove_card(card: CardData):
 		if child is CardViz:
 			if child.card == card:
 				return remove_card_viz(child)
-		var found = NodeUtils.find_children_recursive(child, "CardViz", true)
-		if found != null:
-			return remove_card_viz(found)
+		var found_nodes = NodeUtils.find_children_recursive(child, CardViz, true)
+		if found_nodes.size() > 0:
+			return remove_card_viz(found_nodes[0])
 	return null
 
 func adjust_card_viz(_card_viz: CardViz, level: int) -> int:
@@ -239,7 +241,7 @@ func find_all_by_aspect(aspect: AspectData) -> Array[CardViz]:
 ## 当改变的时候触发的事件和信号
 func on_change() -> void:
 	emit_signal("change_event")
-	var _parent : FragTree = NodeUtils.get_parent_of_type(self, "FragTree")
+	var _parent : FragTree = NodeUtils.get_parent_of_type(self, FragTree)
 	if _parent != null :
 		_parent.on_change()
 
@@ -261,7 +263,11 @@ func interpolate_string(source: String) -> String:
 #region 内部方法
 ## 获取全部卡
 func _get_all_cards(recursive: bool) -> Array[CardViz]:
-	var out: Array[CardViz] = NodeUtils.find_children_recursive(self, "CardViz", recursive)
+	var out: Array[CardViz] = []
+	var raw_results = NodeUtils.find_children_recursive(self, CardViz, recursive)
+	for node in raw_results:
+		if node is CardViz:
+			out.append(node)
 	if _local_card_node != null:
 		out.append(_local_card_node)
 	return out
@@ -269,11 +275,20 @@ func _get_all_cards(recursive: bool) -> Array[CardViz]:
 ## 获取所有的 FragTree
 func _get_fragments(only_free: bool) -> Array[HeldFragmentData]:
 	var out: Array[HeldFragmentData] = []
-	var results: Array[FragTree] = NodeUtils.find_children_recursive(self, "FragTree", true)
-	for fragtree in results:
-		if not fragtree.enabled:
-			continue
-		if not only_free or fragtree.free:
+	
+	# Unity 的 GetComponentsInChildren 包含自身，所以先处理自己的 local_fragments
+	if enabled and (not only_free or free):
+		for l in local_fragments:
+			HeldFragmentData.adjust_in_list(out, l.fragment, l.count)
+	
+	# 然后递归处理子 FragTree
+	var raw_results = NodeUtils.find_children_recursive(self, FragTree, true)
+	for node in raw_results:
+		if node is FragTree:
+			var fragtree := node as FragTree
+			if not fragtree.enabled:
+				continue
+			if not only_free or fragtree.free:
 				for l in fragtree.local_fragments:
 					HeldFragmentData.adjust_in_list(out, l.fragment, l.count)
 	return out
