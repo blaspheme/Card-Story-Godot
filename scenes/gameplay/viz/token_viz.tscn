@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://pgo1v2tn7yih" path="res://icon.svg" id="2_m41ne"]
 [ext_resource type="Texture2D" uid="uid://jmbedvxvo54" path="res://assets/sprite/token_border.svg" id="4_2m7xr"]
 [ext_resource type="Shader" uid="uid://d355bst4un70p" path="res://resources/shaders/ui/edge_gradient_border.gdshader" id="4_586nv"]
-[ext_resource type="PackedScene" uid="uid://bb82rjto665im" path="res://scenes/gameplay/widgets/token_timer.tscn" id="5_rfep7"]
+[ext_resource type="PackedScene" uid="uid://bb82rjto665im" path="res://scenes/gameplay/widgets/timer.tscn" id="5_rfep7"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_epmlw"]
 size = Vector2(200, 200)
@@ -30,6 +30,13 @@ debug_color = Color(0.91352355, 0.5786273, 0.08381411, 0.41960785)
 
 [node name="Visuals" type="Node2D" parent="."]
 
+[node name="Label" type="Label" parent="Visuals"]
+offset_left = -100.0
+offset_top = -130.0
+offset_right = 100.0
+offset_bottom = -100.0
+text = "Title"
+
 [node name="Image" type="TextureRect" parent="Visuals"]
 custom_minimum_size = Vector2(200, 200)
 anchors_preset = 15
@@ -50,7 +57,7 @@ metadata/_edit_use_anchors_ = true
 material = SubResource("ShaderMaterial_586nv")
 texture = ExtResource("4_2m7xr")
 
-[node name="TokenTimer" parent="." instance=ExtResource("5_rfep7")]
+[node name="Timer" parent="." instance=ExtResource("5_rfep7")]
 
 [connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
 [connection signal="mouse_entered" from="Area2D" to="." method="_on_area_2d_mouse_entered"]

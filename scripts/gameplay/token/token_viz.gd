@@ -2,14 +2,21 @@ extends DragCardViz
 class_name TokenViz
 
 @export var token_data: TokenData
+@export var auto_play: ActData
+@export var init_rule: RuleData
+@export var memory_fragment: FragmentData
+
+
+
 # ===============================
 # SceneTree引用
 # ===============================
 @onready var area: Area2D = $Area2D
+@onready var title: Label = $Visuals/Label
 @onready var front_image: TextureRect = $Visuals/Image
 @onready var background: Sprite2D = $Visuals/Background
 @onready var mat: ShaderMaterial = $Visuals/Background.material
-@onready var token_timer: TokenTimer = $TokenTimer
+@onready var token_timer: TokenTimer = $Timer
 
 # ===============================
 # 生命周期方法
@@ -72,3 +79,17 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 			# 开始拖拽处理
 			_handle_mouse_input(mouse_event)
+
+
+#region 保存和加载数据逻辑
+func load_token(_token: TokenData) -> void:
+	if _token == null:
+		return
+
+	token_data = _token
+	title.text = str(_token.label)
+	front_image.texture = _token.art
+
+	name = "[TOKEN] " + str(_token.resource_name)
+
+#endregion

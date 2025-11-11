@@ -1,14 +1,30 @@
-[gd_scene load_steps=6 format=3 uid="uid://4fyoq8npekf0"]
+[gd_scene load_steps=12 format=3 uid="uid://4fyoq8npekf0"]
 
+[ext_resource type="Script" uid="uid://clnensqaofqvj" path="res://scripts/manager/game_manager.gd" id="1_gh441"]
 [ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="2_2p25t"]
+[ext_resource type="Resource" uid="uid://ctw070cjfad47" path="res://resources/sos/___ThisFragment.tres" id="2_bhb63"]
 [ext_resource type="PackedScene" uid="uid://qq6c6dil3jcl" path="res://scenes/gameplay/viz/card_viz.tscn" id="2_x0t60"]
+[ext_resource type="Resource" uid="uid://d0pvbhie871p0" path="res://resources/sos/___ThisCard.tres" id="3_i6m2i"]
 [ext_resource type="Resource" uid="uid://dgp6abcejnxu8" path="res://resources/data/card/player_card.tres" id="3_m3hu3"]
 [ext_resource type="PackedScene" uid="uid://bo3aon3ewih7e" path="res://scenes/gameplay/viz/token_viz.tscn" id="4_m3hu3"]
+[ext_resource type="Resource" uid="uid://d1snferhrgesj" path="res://resources/sos/___MatchedCards.tres" id="4_td3fc"]
+[ext_resource type="Resource" uid="uid://8xur4jsyqyi" path="res://resources/sos/___MemoryFragment.tres" id="5_216mg"]
 [ext_resource type="PackedScene" uid="uid://bl2btp6irrfcg" path="res://scenes/gameplay/viz/slot_viz.tscn" id="5_q64rj"]
+[ext_resource type="PackedScene" uid="uid://ddaduqkgrarml" path="res://scenes/gameplay/viz/act_window.tscn" id="6_0w2j2"]
 
 [node name="Gameplay" type="Node"]
 
 [node name="Manager" type="Node" parent="."]
+
+[node name="GameManager" type="Node" parent="Manager" node_paths=PackedStringArray("root", "window_plane", "card_drag_plane")]
+script = ExtResource("1_gh441")
+root = NodePath("../../Root")
+window_plane = NodePath("../../Root/WindowPlane")
+card_drag_plane = NodePath("../../Root/CardDragPlane")
+this_aspect = ExtResource("2_bhb63")
+this_card = ExtResource("3_i6m2i")
+matched_card = ExtResource("4_td3fc")
+memory_fragment = ExtResource("5_216mg")
 
 [node name="Root" type="Node" parent="."]
 script = ExtResource("2_2p25t")
@@ -32,6 +48,8 @@ position = Vector2(551, 719)
 
 [node name="SlotViz" parent="Root/Table" instance=ExtResource("5_q64rj")]
 position = Vector2(940, 820)
+
+[node name="ActWindow" parent="Root/Table" instance=ExtResource("6_0w2j2")]
 
 [node name="WindowPlane" type="Node" parent="Root"]
 

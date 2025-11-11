@@ -1,8 +1,6 @@
 class_name GameEnums
 
-# ===============================
-# Test类枚举
-# ===============================
+#region Test类枚举
 enum ReqOp {
 	MoreOrEqual = 0,
 	Equal = 1,
@@ -24,10 +22,9 @@ enum ReqLoc {
 	Free = 1 << 7,
 	Anywhere = 1 << 6,
 }
+#endregion
 
-# ===============================
-# Modifier 枚举
-# ===============================
+#region Modifier 枚举
 enum CardOp {
 	FragmentAdditive = 0,
 	FragmentSet = 5,
@@ -71,3 +68,13 @@ enum TableOp {
 	SpawnAct = 0,
 	SpawnToken = 10
 }
+#endregion
+
+#region Act 状态枚举
+enum ActStatus {
+    IDLE = 0,
+    READY = 1,
+    RUNNING = 2,
+    FINISHED = 3,
+}
+#endregion

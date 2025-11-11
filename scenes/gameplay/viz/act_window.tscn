@@ -1,5 +1,69 @@
-[gd_scene format=3 uid="uid://ddaduqkgrarml"]
+[gd_scene load_steps=6 format=3 uid="uid://ddaduqkgrarml"]
+
+[ext_resource type="Script" uid="uid://dqcrtn7wnmpc1" path="res://scripts/gameplay/act/act_window.gd" id="1_7wm8j"]
+[ext_resource type="Script" uid="uid://j27b5u5j4pej" path="res://scripts/gameplay/act/act_logic.gd" id="2_sb48q"]
+[ext_resource type="Script" uid="uid://bd1rngn7fll0x" path="res://scripts/gameplay/act/card_lane.gd" id="2_x0mbc"]
+[ext_resource type="PackedScene" uid="uid://bb82rjto665im" path="res://scenes/gameplay/widgets/timer.tscn" id="4_0x7c6"]
+[ext_resource type="PackedScene" uid="uid://bl2btp6irrfcg" path="res://scenes/gameplay/viz/slot_viz.tscn" id="5_t0h1x"]
 
 [node name="ActWindow" type="Node2D"]
+script = ExtResource("1_7wm8j")
+
+[node name="ActLogic" type="Node" parent="."]
+script = ExtResource("2_sb48q")
+
+[node name="Root" type="Node" parent="."]
 
 [node name="Visuals" type="Node2D" parent="."]
+
+[node name="Foreground" type="Control" parent="Visuals"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 900.0
+offset_bottom = 600.0
+
+[node name="Timer" parent="Visuals/Foreground" instance=ExtResource("4_0x7c6")]
+position = Vector2(280, 297)
+
+[node name="Background" type="Panel" parent="Visuals"]
+offset_right = 900.0
+offset_bottom = 650.0
+
+[node name="ResultsLane" type="Node" parent="."]
+script = ExtResource("2_x0mbc")
+
+[node name="Root" type="Node" parent="ResultsLane"]
+
+[node name="Slots" type="Node" parent="."]
+
+[node name="IdleSlots" type="Node" parent="Slots"]
+
+[node name="SlotViz" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
+position = Vector2(110, 160)
+scale = Vector2(0.8, 0.8)
+
+[node name="SlotViz2" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
+position = Vector2(280, 160)
+scale = Vector2(0.8, 0.8)
+
+[node name="SlotViz3" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
+position = Vector2(450, 160)
+scale = Vector2(0.8, 0.8)
+
+[node name="SlotViz4" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
+position = Vector2(110, 450)
+scale = Vector2(0.8, 0.8)
+
+[node name="SlotViz5" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
+position = Vector2(280, 450)
+scale = Vector2(0.8, 0.8)
+
+[node name="SlotViz6" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
+position = Vector2(450, 450)
+scale = Vector2(0.8, 0.8)
+
+[node name="RunSlots" type="Node" parent="Slots"]
+
+[node name="SlotViz" parent="Slots/RunSlots" instance=ExtResource("5_t0h1x")]
+position = Vector2(280, 300)
+scale = Vector2(0.8, 0.8)

@@ -113,7 +113,7 @@ func _on_tick() -> void:
 		return
 
 	# 增量更新时间（使用计时器的 wait_time，并应用时间缩放）
-	elapsed += _tick_timer.wait_time * GameManager.time_scale
+	elapsed += _tick_timer.wait_time * Manager.GM.time_scale
 
 	# 更新显示并根据剩余时间决定是否显示计时器
 	_update_display()

@@ -336,8 +336,8 @@ func _on_slot_clicked() -> void:
 			matching_cards.append(card)
 	
 	# 通过 EventBus 或 GameManager 高亮卡片
-	if GameManager.has_method("highlight_cards"):
-		GameManager.highlight_cards(matching_cards)
+	if Manager.GM.has_method("highlight_cards"):
+		Manager.GM.highlight_cards(matching_cards)
 	
 	# 发送信号供 UI 监听（显示槽位信息面板等）
 	slot_clicked.emit(self)
@@ -357,11 +357,11 @@ func _find_act_window():
 
 ## 获取所有卡片（从 GameManager 或 Table）
 func _get_all_cards() -> Array:
-	if GameManager.has_method("get_all_cards"):
-		return GameManager.get_all_cards()
+	if Manager.GM.has_method("get_all_cards"):
+		return Manager.GM.get_all_cards()
 	return []
 
 ## 将卡片退回桌面
 func _return_card_to_table(card: CardViz) -> void:
-	if card != null and GameManager.has_method("return_to_table"):
-		GameManager.return_to_table(card)
+	if card != null and Manager.GM.has_method("return_to_table"):
+		Manager.GM.return_to_table(card)

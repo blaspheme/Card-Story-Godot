@@ -10,7 +10,7 @@ class_name DragCardViz
 var is_dragging := false
 var drag_offset := Vector2.ZERO
 var original_z_index: int = 0
-
+var dragging_plane: Control
 # ===============================
 # 缓存引用（由子类在 _ready 中初始化）
 # ===============================
@@ -66,10 +66,7 @@ func _init_drag_system() -> void:
 	# 默认不处理输入（只在拖拽时启用）
 	set_process_input(false)
 
-# ===============================
-# 动画方法
-# ===============================
-
+#region 动画方法
 ## 创建 Tween 动画
 func _create_tween() -> void:
 	if _tween:
@@ -85,6 +82,8 @@ func move_to(target_pos: Vector2, duration := 0.3) -> void:
 func rotate_to(deg: float, duration := 0.25) -> void:
 	_create_tween()
 	_tween.tween_property(self, "rotation", deg_to_rad(deg), duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+#endregion
+
 
 # ===============================
 # 高亮效果
@@ -199,3 +198,26 @@ func _input(event: InputEvent) -> void:
 			_end_drag()
 			# 标记事件已处理
 			get_viewport().set_input_as_handled()
+
+#region 节点操作
+## 将当前节点重新设置父节点
+func parent(new_parent: Node) -> void:
+	var old_parent := get_parent()
+	if old_parent == new_parent:
+		return
+
+	# 从旧父级移除并添加到新父级
+	if old_parent:
+		old_parent.remove_child(self)
+	if new_parent:
+		new_parent.add_child(self)
+
+	var old_frag = NodeUtils.get_parent_of_type(old_parent, FragTree) as FragTree
+	if old_frag:
+		old_frag.on_change()
+
+	var new_frag := NodeUtils.get_parent_of_type(new_parent, FragTree) as FragTree
+	if new_frag:
+		new_frag.on_change()
+		new_frag.on_add_card(self)
+#endregion

@@ -95,7 +95,7 @@ func count_aspect(_aspect: AspectData, only_free: bool=false) -> int:
 # Card/Target 相关 API（简化实现，保留签名）
 func add_card(card: CardData) -> CardViz:
 	if card != null:
-		var card_viz = GameManager.create_card(card)
+		var card_viz = Manager.GM.create_card(card)
 		add_viz(card_viz)
 		emit_signal("on_create_card", card_viz)
 		return card_viz
@@ -245,7 +245,7 @@ func on_change() -> void:
 	if _parent != null :
 		_parent.on_change()
 
-func on_add_card(card_viz: Node) -> void:
+func on_add_card(card_viz: CardViz) -> void:
 	# 控制卡片的 decay/pause
 	for c in card_viz.get_children():
 		if pause:

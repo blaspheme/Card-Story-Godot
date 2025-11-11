@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AspectData" load_steps=7 format=3 uid="uid://ctw070cjfad47"]
+
+[ext_resource type="Script" uid="uid://bhoj3oie1gjpg" path="res://scripts/data/fragment_data.gd" id="1_fbpjt"]
+[ext_resource type="Script" uid="uid://cpixo6wngxjvf" path="res://scripts/data/basic/text_data.gd" id="2_falsj"]
+[ext_resource type="Script" uid="uid://dc60x7mtd6xwq" path="res://scripts/data/rule_data.gd" id="2_hljvh"]
+[ext_resource type="Script" uid="uid://41aufp1g32im" path="res://scripts/data/aspect_data.gd" id="3_falsj"]
+[ext_resource type="Script" uid="uid://cfs07cxd1cqjm" path="res://scripts/data/slot_data.gd" id="4_brfr0"]
+
+[sub_resource type="Resource" id="Resource_hljvh"]
+script = ExtResource("2_falsj")
+text = "___ThisFragment"
+metadata/_custom_type_script = "uid://cpixo6wngxjvf"
+
+[resource]
+script = ExtResource("3_falsj")
+label = SubResource("Resource_hljvh")
+metadata/_custom_type_script = "uid://41aufp1g32im"

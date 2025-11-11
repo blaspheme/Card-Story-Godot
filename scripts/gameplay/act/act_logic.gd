@@ -1,304 +1,496 @@
 extends Node
 class_name ActLogic
 
-# ActLogic ：负责 Act 生命周期与场景节点交互。
-#
-# 设计原则：
-# - 通过 ContextFacade / ModifierEvaluator / CommandExecutor 等 system 服务实现规则与 modifier 的评估和执行。
-# - 保持职责单一：不在此处实现 fragment 计数或 modifier 细节。
+# ===============================
+# Act 执行逻辑：管理 Act 链、Slot 开关、规则执行、结果处理
+# ===============================
 
-@export var frag_tree_path: NodePath
-@export var timer_path: NodePath
+# 组件引用
+@onready var frag_tree: FragTree = get_node("../FragTree") if has_node("../FragTreeFragTree") else null
+@onready var act_window = get_parent() # ActWindow 是父节点
 
-@onready var frag_tree = get_node(frag_tree_path)
-@onready var _timer = get_node(timer_path)
+# 当前激活的 Act
+var active_act: ActData = null
+# 运行时替代的 Act（alt）
+var alt_act: ActData = null
 
-var _fsm_logic : ActFSMLogic= null
+# Act 列表缓存
+var alt_acts: Array[ActData] = []
+var next_acts: Array[ActData] = []
+var spawned_acts: Array[ActData] = []
 
-# Signals for UI/display layer to connect to. ActLogic only emits lifecycle/events.
-# UI code should live in a separate script (e.g. act_logic_ui.gd) that listens and
-# drives the actual `ActWindow` node. This keeps flow logic independent from display.
-signal act_started(act)
-signal act_status_changed(status)
-signal act_update()
-signal act_results_ready(frag_tree, active_act)
-signal act_setup_result_cards(direct_cards)
-signal act_end_text_changed(text)
-signal act_timer_started(time)
-signal act_timer_stopped()
+# 强制执行/回调控制
+var force_act: ActData = null
+var callback_act: ActData = null
+var do_callback: bool = false
+var force_rule: RuleData = null
 
-var _active_act = null
-var _alt_act = null
-var _pool_manager: PoolManager = PoolManager.new()
-var _modifier_evaluator: ModifierEvaluator = ModifierEvaluator.new()
-var _command_executor: CommandExecutor = CommandExecutor.new()
+# 文本缓存
+var end_text: TextData
+var run_text: TextData 
+var label: TextData
 
-func inject_pool_manager(pool: PoolManager) -> void:
-	# 允许上层（例如 GameManager）注入全局 PoolManager
-	assert(pool != null)
-	_pool_manager = pool
+# 分支与调用栈
+var branch_out_act: ActData = null
+var call_stack: Array[ActData] = []
 
+#region 属性访问器
+
+var slots_frag_tree: FragTree:
+	get: return act_window.slots_frag_tree if act_window else null
+
+var token_viz: TokenViz:
+	get: return act_window.token_viz if act_window else null
+
+#endregion
+
+#region 初始化
 func _ready() -> void:
-	# 静态契约：节点依赖必须在启动时存在，否则立刻失败以便尽快修复
-	assert(frag_tree != null)
-	assert(_timer != null)
-	_timer.timeout.connect(Callable(self, "_on_time_up"))
-	# 若存在 GameManager 单例且其提供 pool_manager，则请求注入全局池以实现跨 ActLogic 共享
-	if Engine.has_singleton("GameManager"):
-		var gm = Engine.get_singleton("GameManager")
-		# 按 AGENTS.md 的静态契约风格：断言 GameManager 提供 pool_manager 字段与注入接口
-		assert(gm != null)
-		# 强制性契约：GameManager 必须提供 pool_manager 与注入接口，若不存在则尽早失败
-		assert(gm.pool_manager != null)
-		# 直接调用注入接口（若不存在，将在运行时报错，遵循 AGENTS.md 的快速失败策略）
-		gm.inject_pool_to_act_logic(self)
+	# 组件已通过 @onready 获取
+	if frag_tree:
+		# 设置创建卡片回调
+		frag_tree.on_create_card.connect(_on_create_card)
 
-func run_act(act) -> void:
-	# 启动并运行一个 Act（等价于 C# RunAct）
-	assert(act != null)
-	_active_act = act
-	_alt_act = null
+func _on_create_card(card_viz: CardViz) -> void:
+	if act_window:
+		card_viz.parent_to(act_window, true)
+#endregion
 
-	# 在需要时，Act 可能通过 forceRule 被强制执行；保留调用方式以兼容上层逻辑
-	if act.force_rule != null:
-		var fctx = ContextFacade.acquire_from_act_logic(self, false, _pool_manager)
-		# 期望 act.force_rule 提供 Run(context) 接口（按项目契约）
-		act.force_rule.Run(fctx)
-		fctx.dispose()
-
-	# 通知 UI 层 Act 已开始并切换到运行状态
-	emit_signal("act_started", act)
-	emit_signal("act_status_changed", "Running")
-	emit_signal("act_update")
-
-	_populate_act_list(act.alt_acts, "_alt_acts_holder", act.randomAlt) # 占位：C# 使用外部容器，这里仅保持接口风格
-
-	_attempt_alt_acts()
-
-	if act.time > 0:
-		_timer.start(act.time)
-		emit_signal("act_timer_started", act.time)
-		emit_signal("act_status_changed", "Running")
+#region Slot 检查与打开
+## 返回应该打开的 Slot 列表
+func check_for_slots() -> Array[SlotData]:
+	var slots_to_attempt: Array[SlotData] = []
+	var slots_to_open: Array[SlotData] = []
+	
+	if active_act != null:
+		# 从当前 Act 获取 slots
+		for slot in active_act.slots:
+			if slot != null:
+				slots_to_attempt.append(slot)
+		
+		# 如果不忽略全局 slots，添加全局 slots
+		if not active_act.ignore_global_slots:
+			for slot in Manager.GM.slot_sos:
+				if slot != null and slot.all_acts:
+					slots_to_attempt.append(slot)
 	else:
-		# 立即使用 FSM 处理无计时的 Act
-		if _fsm_logic == null:
-			_fsm_logic = ActFSMLogic.new()
-			add_child(_fsm_logic)
-			# 构造显式 services 字典并传入 FSM_Logic，遵循静态契约而非运行时 has_method 检查
-			var services = {
-				"context_factory": Callable(self, "_make_fsm_context"),
-				"frag_tree": frag_tree,
-				"inject_triggers": Callable(self, "inject_triggers"),
-				"modifier_evaluator": _modifier_evaluator,
-				"command_executor": _command_executor,
-				"pool_manager": _pool_manager,
-				"signal_target": self
-			}
-			_fsm_logic.start(act, services)
-			# 将新创建的 FSM 注册到 GameManager，便于中央调度
-			if Engine.has_singleton("GameManager"):
-				var gm = Engine.get_singleton("GameManager")
-				gm.register_fsm(_fsm_logic)
-		# 让节点的 _process 驱动 FSM 的进展（frame-driven）
-		# 返回以避免继续原有同步流，处理将由 FSM 在随后帧推进完成
+		# 没有 active_act 时的逻辑
+		if token_viz != null and token_viz.token != null and token_viz.token.slot != null:
+			slots_to_open.append(token_viz.token.slot)
+		
+		# 从 cards 收集 slots
+		for card_viz in frag_tree.cards():
+			if card_viz.card != null:
+				for slot in card_viz.card.slots:
+					if slot != null:
+						slots_to_attempt.append(slot)
+		
+		# 从 fragments 收集 slots
+		for held_frag in frag_tree.fragments():
+			if held_frag.fragment != null:
+				for slot in held_frag.fragment.slots:
+					if slot != null:
+						slots_to_attempt.append(slot)
+		
+		# 全局 token 相关的 slots
+		for slot in Manager.GM.slot_sos:
+			if slot != null:
+				if slot.all_tokens or (token_viz != null and slot.token == token_viz.token):
+					slots_to_attempt.append(slot)
+	
+	# 检查每个 slot 是否能打开
+	for slot in slots_to_attempt:
+		if slot != null:
+			# 如果 unique 为 false 或者还没在列表中
+			if not slot.unique or not slots_to_open.has(slot):
+				if slot.opens(self):
+					slots_to_open.append(slot)
+	
+	return slots_to_open
+#endregion
+
+#region Act 执行流程
+## 运行指定的 Act
+func run_act(act: ActData) -> void:
+	if act == null:
 		return
+	
+	print("Running act: ", act.resource_path if act.resource_path else act.label)
+	active_act = act
+	force_act = null
+	branch_out_act = null
+	
+	# 执行强制规则
+	if force_rule != null:
+		var context = Context.acquire_from_act_logic(self)
+		force_rule.run(context)
+		context.release()
+		force_rule = null
+	
+	# 将 slot 中的卡移到窗口
+	act_window.parent_slot_cards_to_window()
+	
+	# 更新状态和 slots
+	act_window.apply_status(GameEnums.ActStatus.RUNNING)
+	act_window.update_slots()
+	
+	# 填充 alt acts 列表
+	populate_act_list(act.alt_acts, alt_acts, act.random_alt)
+	attempt_alt_acts()
+	
+	# 检查是否需要计时
+	if act.time > 0:
+		token_viz.timer.start_timer(act.time, on_time_up)
+		token_viz.show_timer()
+		act_window.apply_status(GameEnums.ActStatus.RUNNING)
+	else:
+		setup_act_results()
 
-func _on_time_up() -> void:
-	_timer.stop()
-	# 始终使用 FSM 处理计时完成的 Act
-	if _fsm_logic == null:
-		_fsm_logic = ActFSMLogic.new()
-		add_child(_fsm_logic)
-		var services = {
-			"context_factory": Callable(self, "_make_fsm_context"),
-			"frag_tree": frag_tree,
-			"inject_triggers": Callable(self, "inject_triggers"),
-			"modifier_evaluator": _modifier_evaluator,
-			"command_executor": _command_executor,
-			"pool_manager": _pool_manager,
-			"signal_target": self
-		}
-		_fsm_logic.start(_active_act, services)
-		if Engine.has_singleton("GameManager"):
-			var gm = Engine.get_singleton("GameManager")
-			gm.register_fsm(_fsm_logic)
-	# 将让 _process 在随后的帧驱动 FSM
-	emit_signal("act_timer_stopped")
-	return
+## 计时器结束回调
+func on_time_up() -> void:
+	token_viz.show_timer(false)
+	setup_act_results()
 
-func _setup_act_results() -> void:
-	# 在 Act 完成点处理 fragments、triggers、modifiers 与后续 Act
-	if _alt_act != null:
-		_active_act = _alt_act
+## 重置 ActLogic 状态
+func reset() -> void:
+	active_act = null
+	alt_act = null
+	end_text = null
+	run_text = null
+	label = null
+	frag_tree.clear()
+#endregion
 
-	# 将 fragments 添加到 frag_tree
-	for frag in _active_act.fragments:
-		frag_tree.add_fragment(frag)
-
-	_apply_triggers()
-
-	# 使用 ContextFacade 创建上下文并评估/执行 modifiers（建议 ActLogic 控制时机）
-	var facade = ContextFacade.acquire_from_act_logic(self, true, _pool_manager)
-	# 先由 evaluator 将 ActData 的 resource modifiers 转成命令队列
-	_modifier_evaluator.evaluate_all_from_actdata(_active_act, facade.get_data(), _pool_manager)
-	# 执行命令并传入 PoolManager 以便自动回收
-	_command_executor.execute_and_release(facade.get_data().act_modifiers, facade.get_data(), _pool_manager)
-	_command_executor.execute_and_release(facade.get_data().card_modifiers, facade.get_data(), _pool_manager)
-	_command_executor.execute_and_release(facade.get_data().table_modifiers, facade.get_data(), _pool_manager)
-	_command_executor.execute_and_release(facade.get_data().path_modifiers, facade.get_data(), _pool_manager)
-	_command_executor.execute_and_release(facade.get_data().deck_modifiers, facade.get_data(), _pool_manager)
-	facade.dispose()
-
-	# 生成/刷新的 Acts 列表与 Spawn
-	# 注意：GameManager 作为 autoload 单例存在于项目中（按契约），直接调用其 SpawnAct 接口
-	if Engine.has_singleton("GameManager"):
-		var gm = Engine.get_singleton("GameManager")
-		for link in _active_act.spawned_acts:
-			gm.SpawnAct(link.act, frag_tree, null)
-
-	var end_text = _get_end_text(_active_act)
-	if end_text != "":
-		# 存储并在 UI 展示
-		_active_act.end_text = end_text
-		emit_signal("act_end_text_changed", end_text)
-
-	# 分支/下一步逻辑（简化版）
-	if _active_act.next_acts != null and _active_act.next_acts.size() > 0:
-		var next_act = _attempt_next_acts(_active_act.next_acts)
-		if next_act != null:
-			run_act(next_act)
-			return
-
-	_setup_final_results()
-
-func _setup_final_results() -> void:
-	# 通知 UI 层生成/刷新结果卡片并标记完成状态
-	emit_signal("act_setup_result_cards", frag_tree.direct_cards())
-	emit_signal("act_status_changed", "Finished")
-	emit_signal("act_results_ready", frag_tree, _active_act)
-
-func _attempt_next_acts(acts: Array) -> Object:
-	# 简化的 AttemptActs：遍历 acts 并返回第一个 Attempt 成功的 Act
-	for actlink in acts:
-		if actlink.act != null:
-			var ctx = ContextFacade.acquire_from_act_logic(self, false, _pool_manager)
-			var passed = actlink.act.Attempt(ctx)
-			ctx.dispose()
-			if passed:
-				return actlink.act
-	return null
-
-func _attempt_alt_acts() -> void:
-	# Evaluate alt acts and set _alt_act
-	for link in _active_act.alt_acts:
-		var ctx = ContextFacade.acquire_from_act_logic(self, false, _pool_manager)
-		var passed = link.act.Attempt(ctx)
-		ctx.dispose()
+#region Act 列表填充
+## 根据 ActLink 列表填充目标 Act 数组
+func populate_act_list(source: Array[ActLink], target: Array, random_order: bool = false) -> void:
+	if source == null or target == null:
+		return
+	
+	target.clear()
+	
+	# 特殊情况：单个无条件 ActLink
+	if source.size() == 1 and source[0].chance == 0 and source[0].act_rule == null:
+		target.append(source[0].act)
+		return
+	
+	# 遍历所有 ActLink
+	for act_link in source:
+		if act_link == null:
+			continue
+		
+		var passed = false
+		
+		if act_link.act_rule != null:
+			# 使用规则判断
+			var context = Context.acquire_from_act_logic(self)
+			passed = act_link.act_rule.evaluate(context)
+			context.release()
+		else:
+			# 使用概率判断
+			var r = randi_range(0, 99)
+			if r < act_link.chance:
+				passed = true
+		
 		if passed:
-			_alt_act = link.act
+			if not random_order:
+				target.append(act_link.act)
+			else:
+				# 随机插入位置
+				var i = randi_range(0, target.size())
+				target.insert(i, act_link.act)
+#endregion
+
+#region Act 结果处理
+## 设置 Act 执行结果
+func setup_act_results() -> void:
+	# 如果有替代 Act，切换到替代 Act
+	if alt_act != null:
+		print("Switched to: ", alt_act.resource_path if alt_act.resource_path else alt_act.label)
+		active_act = alt_act
+	
+	# 将 slot 卡片移到窗口
+	act_window.parent_slot_cards_to_window()
+	
+	# 添加 Act 的 fragments
+	for frag in active_act.fragments:
+		if frag != null:
+			frag.add_to_tree(frag_tree)
+	
+	# 应用触发器
+	apply_triggers()
+	
+	# 应用 Modifiers
+	var context = Context.acquire_from_act_logic(self, true)
+	active_act.apply_modifiers(context)
+	context.release()
+	
+	# 生成新的 Acts
+	populate_act_list(active_act.spawned_acts, spawned_acts)
+	for spawned_act in spawned_acts:
+		if spawned_act != null:
+			Manager.GM.spawn_act(spawned_act, frag_tree, token_viz)
+	
+	# 获取结束文本
+	var et = get_end_text(active_act)
+	if et != "":
+		end_text = et
+	
+	# 检查强制 Act
+	if force_act != null:
+		force_act_impl(force_act)
+		return
+	
+	# 检查分支 Act
+	if branch_out_act != null:
+		var branch_context = Context.acquire_from_act_logic(self)
+		if attempt_act(branch_out_act, branch_context):
+			print("Branching out to act: ", branch_out_act.resource_path if branch_out_act.resource_path else branch_out_act.label)
+			call_stack.append(active_act)
+			branch_context.release()
+			run_act(branch_out_act)
 			return
+		branch_context.release()
+	
+	# 检查回调
+	if do_callback and callback_act != null:
+		do_callback = false
+		var callback_context = Context.acquire_from_act_logic(self)
+		if attempt_act(callback_act, callback_context):
+			callback_context.release()
+			run_act(callback_act)
+			return
+		callback_context.release()
+	
+	# 尝试下一个 Act
+	populate_act_list(active_act.next_acts, next_acts, active_act.random_next)
+	
+	var next_act = attempt_next_acts()
+	# 如果没有找到，回溯调用栈
+	while next_act == null and call_stack.size() > 0:
+		var stack_act = call_stack[call_stack.size() - 1]
+		call_stack.remove_at(call_stack.size() - 1)
+		populate_act_list(stack_act.next_acts, next_acts, stack_act.random_next)
+		next_act = attempt_next_acts()
+	
+	if next_act != null:
+		run_act(next_act)
+	else:
+		setup_final_results()
 
-func _populate_act_list(_source: Array, _target_name: String, _random_order: bool=false) -> void:
-	# 占位：保留接口以便将来实现更复杂的列表填充逻辑
-	return
+## 设置最终结果（Act 链结束）
+func setup_final_results() -> void:
+	act_window.setup_result_cards(frag_tree.direct_cards())
+	act_window.apply_status(GameEnums.ActStatus.FINISHED)
+#endregion
 
-func attempt_act(act, force: bool=false) -> bool:
-	var ctx = ContextFacade.acquire_from_act_logic(self, false, _pool_manager)
-	var res = act.Attempt(ctx, force)
-	if res:
-		ctx.get_data().save_matches()
-	ctx.dispose()
-	return res
+#region Act 控制接口
+## 强制执行指定 Act
+func force_act_impl(act: ActData) -> void:
+	var context = Context.acquire_from_act_logic(self)
+	# 保存 matches
+	attempt_act(act, context, true)
+	context.release()
+	run_act(act)
 
-func attempt_acts(acts: Array, _match_token: bool=false) -> Object:
-	var ctx = ContextFacade.acquire_from_act_logic(self, false, _pool_manager)
-	for actlink in acts:
-		if actlink.act != null:
-			var ok = actlink.act.Attempt(ctx)
-			if ok:
-				ctx.dispose()
-				return actlink.act
-	ctx.dispose()
+func set_callback(act: ActData) -> void:
+	callback_act = act
+
+func do_callback_func() -> void:
+	do_callback = true
+
+func set_force_act(act: ActData) -> void:
+	force_act = act
+
+func force_rule_func(rule: RuleData) -> void:
+	force_rule = rule
+
+func branch_out(act: ActData) -> void:
+	if act != null:
+		branch_out_act = act
+#endregion
+
+#region Act 尝试逻辑
+## 尝试初始 Acts
+func attempt_initial_acts() -> ActData:
+	return attempt_acts(Manager.GM.initial_acts, true)
+
+## 尝试替代 Acts
+func attempt_alt_acts() -> ActData:
+	alt_act = attempt_acts(alt_acts)
+	update_text()
+	return alt_act
+
+## 尝试下一个 Acts
+func attempt_next_acts() -> ActData:
+	return attempt_acts(next_acts)
+
+## 尝试单个 Act
+func attempt_act(act: ActData, context, force: bool = false) -> bool:
+	context.reset_matches()
+	if act.attempt(context, force):
+		context.save_matches()
+		return true
+	else:
+		return false
+
+## 尝试 Act 列表
+func attempt_acts(acts: Array, match_token: bool = false) -> ActData:
+	var context = Context.acquire_from_act_logic(self)
+	for act in acts:
+		if act != null:
+			# 检查 token 匹配
+			if match_token and token_viz != null and act.token != token_viz.token:
+				continue
+			
+			if attempt_act(act, context):
+				context.release()
+				return act
+	context.release()
 	return null
+#endregion
 
+#region 触发器应用
+## 注入触发器（外部调用）
 func inject_triggers(target) -> void:
 	if target == null:
 		return
-	var ctx = ContextFacade.acquire_from_act_logic(self, false, _pool_manager)
+	
+	var context = Context.acquire_from_act_logic(self)
+	
 	if target.fragment != null:
-		_apply_aspect_triggers(ctx, target.fragment)
+		apply_aspect_triggers(context, target.fragment)
 	else:
-		for cardViz in target.cards:
-			_apply_card_triggers(ctx, cardViz)
-	ctx.dispose()
+		for card_viz in target.cards:
+			apply_card_triggers(context, card_viz)
+	
+	context.release()
 
-func _apply_card_triggers(ctx, cardViz) -> void:
-	if cardViz == null:
+## 应用 Card 触发器
+func apply_card_triggers(context, card_viz: CardViz) -> void:
+	if card_viz == null:
 		return
-	ctx.get_data().this_card = cardViz
-	ctx.get_data().this_aspect = cardViz.card
-	for rule in cardViz.card.rules:
-		rule.Run(ctx)
-	ctx.get_data().this_card = null
+	
+	context.this_card = card_viz
+	context.this_aspect = card_viz.card
+	
+	for rule in card_viz.card.rules:
+		if rule != null:
+			rule.run(context)
 
-func _apply_aspect_triggers(ctx, fragment) -> void:
+## 应用 Aspect 触发器
+func apply_aspect_triggers(context, fragment: FragmentData) -> void:
 	if fragment == null:
 		return
-	ctx.get_data().this_aspect = fragment
+	
+	context.this_aspect = fragment
+	
 	for rule in fragment.rules:
-		rule.Run(ctx)
-	ctx.get_data().this_aspect = null
+		if rule != null:
+			rule.run(context)
 
-func _apply_triggers() -> void:
-	var ctx = ContextFacade.acquire_from_act_logic(self, false, _pool_manager)
-	for cardViz in ctx.get_data().scope.cards:
-		_apply_card_triggers(ctx, cardViz)
-	for frag in ctx.get_data().scope.fragments:
-		_apply_aspect_triggers(ctx, frag.fragment)
-	ctx.dispose()
+## 应用所有触发器
+func apply_triggers() -> void:
+	var context = Context.acquire_from_act_logic(self)
+	
+	# 应用所有 Card 的触发器
+	for card_viz in context.scope.cards():
+		apply_card_triggers(context, card_viz)
+	
+	context.this_card = null
+	
+	# 应用所有 Fragment 的触发器
+	for held_frag in context.scope.fragments():
+		apply_aspect_triggers(context, held_frag.fragment)
+	
+	context.release()
+#endregion
 
-func reset() -> void:
-	_active_act = null
-	_alt_act = null
-	frag_tree.clear()
-	if _fsm_logic != null:
-		# 清理并移除 FSM_Logic 实例
-		# 从 GameManager 注销
-		if Engine.has_singleton("GameManager"):
-			var gm = Engine.get_singleton("GameManager")
-			gm.unregister_fsm(_fsm_logic)
-		_fsm_logic.dispose()
-		_fsm_logic.queue_free()
-		_fsm_logic = null
-	emit_signal("act_update")
+#region 文本处理
+## 更新运行时文本
+func update_text() -> void:
+	var new_run_text = get_text(alt_act) if alt_act else get_text(active_act)
+	var new_label = alt_act.label if alt_act else active_act.label
+	
+	if new_run_text != "":
+		run_text = new_run_text
+	if new_label != "":
+		label = new_label
 
-func _make_fsm_context() -> Object:
-	# 为 FSM 提供与原有 ActLogic 等价的 ContextFactory
-	return ContextFacade.acquire_from_act_logic(self, true, _pool_manager)
+## 字符串插值
+func interpolate_string(s: String) -> String:
+	return frag_tree.interpolate_string(s) if frag_tree else s
 
-func tick(delta: float) -> void:
-	# 由 GameManager 驱动的每帧更新入口（替代 _process）
-	# GameManager 应在其主循环中调用 act_logic.tick(delta) 来推进 FSM
-	if _fsm_logic != null and _fsm_logic.is_running():
-		_fsm_logic.tick(delta)
+## Token 描述
+func token_description() -> String:
+	if token_viz == null or token_viz.token == null:
+		return ""
+	return get_text_with_rules(token_viz.token.text_rules, token_viz.token.description)
 
-func save() -> Dictionary:
-	var out = {
-		"fragSave": frag_tree.save(),
-		"activeAct": _active_act,
-		"altAct": _alt_act
-	}
-	return out
-
-func load(save_data: Dictionary) -> void:
-	frag_tree.load(save_data.get("fragSave"))
-	_active_act = save_data.get("activeAct", null)
-	_alt_act = save_data.get("altAct", null)
-
-func _get_end_text(act) -> String:
+## 获取 Act 文本
+func get_text(act: ActData) -> String:
 	if act == null:
 		return ""
-	var et = ""
-	if act.end_text != null:
-		et = act.end_text
-	return et
+	return get_text_with_rules(act.text_rules, act.text)
+
+## 获取 Act 结束文本
+func get_end_text(act: ActData) -> String:
+	if act == null:
+		return ""
+	return get_text_with_rules(act.end_text_rules, act.end_text)
+
+## 根据规则获取文本
+func get_text_with_rules(text_rules: Array, default_text: String) -> String:
+	if text_rules != null and text_rules.size() > 0:
+		var context = Context.acquire_from_act_logic(self)
+		
+		for rule in text_rules:
+			if rule != null and rule.evaluate(context):
+				var result = interpolate_string(rule.text)
+				context.release()
+				return result
+		
+		context.release()
+	
+	return interpolate_string(default_text)
+#endregion
+
+#region 保存/加载
+## 保存状态
+func save_state() -> Dictionary:
+	return {
+		"frag_save": frag_tree.save_state() if frag_tree else {},
+		"active_act": active_act.resource_path if active_act else "",
+		"callback_act": callback_act.resource_path if callback_act else "",
+		"branch_out_act": branch_out_act.resource_path if branch_out_act else "",
+		"call_stack": call_stack.map(func(act): return act.resource_path if act else ""),
+		"alt_act": alt_act.resource_path if alt_act else "",
+		"end_text": end_text,
+		"run_text": run_text,
+		"label": label
+	}
+
+## 加载状态
+func load_state(save: Dictionary) -> void:
+	if frag_tree and save.has("frag_save"):
+		frag_tree.load_state(save.frag_save)
+	
+	active_act = load(save.active_act) if save.get("active_act", "") != "" else null
+	callback_act = load(save.callback_act) if save.get("callback_act", "") != "" else null
+	branch_out_act = load(save.branch_out_act) if save.get("branch_out_act", "") != "" else null
+	
+	call_stack.clear()
+	if save.has("call_stack"):
+		for path in save.call_stack:
+			if path != "":
+				call_stack.append(load(path))
+	
+	alt_act = load(save.alt_act) if save.get("alt_act", "") != "" else null
+	
+	if active_act != null:
+		populate_act_list(active_act.alt_acts, alt_acts, active_act.random_alt)
+	
+	end_text = save.get("end_text", "")
+	run_text = save.get("run_text", "")
+	label = save.get("label", "")
+#endregion

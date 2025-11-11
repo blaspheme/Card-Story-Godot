@@ -8,7 +8,7 @@ class_name Context
 static var POOL_MAX = 128
 
 # 服务实例（集中管理）
-static var _ContextFacadeClass = preload("res://scripts/system/core/context_facade.gd")
+static var _ContextFacadeClass = preload("res://scripts/gameplay/context/context_facade.gd")
 
 static func acquire_from_act_logic(act_logic_arg, keep_matches: bool=false):
 	return _ContextFacadeClass.acquire_from_act_logic(act_logic_arg, keep_matches)

@@ -19,7 +19,7 @@ signal time_up
 # ===============================
 # 私有属性
 # ===============================
-var _duration: float = 0.0
+var _duration: float = 10.0
 var _elapsed_time: float = 0.0
 var _following_timer: TokenTimer = null
 var _enabled: bool = false
@@ -71,7 +71,7 @@ func _on_tick() -> void:
 		return
 	
 	# 更新已用时间（应用时间缩放）
-	_elapsed_time += _tick_timer.wait_time * GameManager.time_scale
+	_elapsed_time += _tick_timer.wait_time * Manager.GM.time_scale
 	
 	# 更新显示
 	_update_display(time_left)
