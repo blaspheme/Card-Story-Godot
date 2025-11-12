@@ -78,8 +78,8 @@ func pop() -> CardViz:
 	
 	# 从堆栈移除并把父级设为场景中的原位（此处将其父设为父卡的父节点，通常是 Table 节点）
 	var target_parent := _parent_card.get_parent()
-	remove_child(top_card)
-	target_parent.add_child(top_card)
+	NodeUtils.parent(top_card, target_parent)
+
 	top_card.global_position = _parent_card.global_position
 	
 	# 更新计数与堆引用

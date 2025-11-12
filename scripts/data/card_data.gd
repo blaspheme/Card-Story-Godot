@@ -1,6 +1,7 @@
 class_name CardData
 extends FragmentData
 
+#region 属性定义
 @export_category("Decay(转换)")
 ## 当该卡被创建时，它会自动衰变为指定的卡
 @export var decay_to : CardData
@@ -17,3 +18,4 @@ extends FragmentData
 
 @export_category("Memory")
 @export var memory_from_first : bool = false
+#endregion

@@ -1,4 +1,4 @@
-extends DragCardViz
+extends Viz
 class_name TokenViz
 
 #region 参数

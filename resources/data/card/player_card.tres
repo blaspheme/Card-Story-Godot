@@ -1,5 +1,6 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=8 format=3 uid="uid://dgp6abcejnxu8"]
+[gd_resource type="Resource" script_class="CardData" load_steps=9 format=3 uid="uid://dgp6abcejnxu8"]
 
+[ext_resource type="Resource" uid="uid://hsmcnfc340se" path="res://resources/data/card/flower.tres" id="1_5yy5e"]
 [ext_resource type="Script" uid="uid://bhoj3oie1gjpg" path="res://scripts/data/fragment_data.gd" id="1_um3f5"]
 [ext_resource type="Texture2D" uid="uid://b1nk3gvvgc0ye" path="res://reports/report_1/css/logo.png" id="2_1u8nl"]
 [ext_resource type="Script" uid="uid://dc60x7mtd6xwq" path="res://scripts/data/rule_data.gd" id="2_ag6be"]
@@ -14,6 +15,8 @@ metadata/_custom_type_script = "uid://cpixo6wngxjvf"
 
 [resource]
 script = ExtResource("3_1u8nl")
+decay_to = ExtResource("1_5yy5e")
+lifetime = 4.0
 label = SubResource("Resource_udq1a")
 image = ExtResource("2_1u8nl")
 metadata/_custom_type_script = "uid://d1jfl1jibwccu"

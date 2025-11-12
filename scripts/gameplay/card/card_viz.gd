@@ -1,16 +1,15 @@
-extends DragCardViz
+extends Viz
 class_name CardViz
 
 ## 卡牌可视化组件
-## 继承自 DragCardViz，实现具体的卡牌显示和交互逻辑
 
-# 导出变量
+#region 导出变量
 ## 卡牌的数据资源
 @export var card_data: CardData
+#endregion
 
-# ===============================
-# SceneTree引用
-# ===============================
+#region 变量
+## SceneTree引用
 @onready var area: Area2D = $Area2D
 @onready var frag_tree: FragTree = $Root
 @onready var visuals: Node2D = $Visuals
@@ -23,16 +22,12 @@ class_name CardViz
 @onready var stack_counter: CardStack = $StackCounter
 @onready var decay_timer: CardDency = $DaceyTimer
 
-# 堆叠引用（用于CardStack中的卡牌）
+## 堆叠引用（用于CardStack中的卡牌）
 var stack: CardViz = null
 
-# 状态属性
+## 状态属性
 var _face_down: bool = false
 var interactive: bool = true  # 是否可交互（拖拽、点击等）
-
-# ===============================
-# 属性访问器
-# ===============================
 
 ## 卡牌是否自由（可拖动）
 var free: bool:
@@ -52,27 +47,23 @@ var stack_count: int:
 ## 衰败组件引用
 var decay: CardDency:
 	get: return decay_timer
+#endregion
 
-# ===============================
-# 生命周期方法
-# ===============================
+#region 生命周期方法
+
 func _ready() -> void:
+	if card_data != null:
+		load_card(card_data)
+	
 	# 初始化拖拽系统（父类方法）
 	_init_drag_system()
+	
+	if frag_tree != null:
+		frag_tree.on_create_card.connect(_on_create_card.bind(self))
 	
 	# 连接衰败完成信号
 	if decay_timer:
 		decay_timer.decay_completed.connect(_on_decay_completed)
-	
-	# 如果有卡片数据，进行初始化
-	setup_card()
-
-## 设置卡片数据和外观
-func setup_card() -> void:
-	if not card_data:
-		return
-	
-	load_card(card_data)
 	
 	# 组件赋值
 	stack_counter._parent_card = self
@@ -81,7 +72,15 @@ func setup_card() -> void:
 	# 检查是否需要开始衰败
 	_check_and_start_decay()
 
-#region 实现父类抽象方法
+## 信号
+func _on_create_card(_card_viz: CardViz) -> void:
+	_card_viz.parent_to(frag_tree, true)
+	if decay.paused:
+		_card_viz.decay.pause()
+
+#endregion
+
+#region 实现父类抽象方法：单击、拖拽、点击事件
 ## 获取 Area2D 节点
 func _get_area() -> Area2D:
 	return area
@@ -96,45 +95,7 @@ func _get_material() -> ShaderMaterial:
 
 ## 检查是否允许拖拽（重写以添加堆叠拖拽检查）
 func _can_start_drag() -> bool:
-	# 始终允许拖拽，具体的弹出逻辑在_on_drag_started中处理
-	return true
-
-#endregion
-# ===============================
-# 堆叠交互方法
-# ===============================
-
-## 弹出一张卡
-func yield_card() -> CardViz:
-	if stack_counter.get_count() > 0:
-		return stack_counter.pop()
-	else:
-		return self
-
-## 接受其他卡片的放置
-func accept_dropped_card(dropped_card: CardViz) -> bool:
-	if not can_stack_with(dropped_card):
-		return false
-	
-	# 检查被拖拽的卡是否有自己的堆叠
-	if dropped_card.stack_counter.get_count() > 0:
-		# 合并两个堆叠
-		return stack_counter.merge(dropped_card.stack_counter)
-	else:
-		# 将单张卡加入当前堆叠
-		return stack_counter.push(dropped_card)
-
-## 检查是否可以与另一张卡堆叠
-func can_stack_with(other_card: CardViz) -> bool:
-	if other_card == null or other_card == self:
-		return false
-	
-	# 检查卡牌类型是否相同（你可以根据项目需求修改这个条件）
-	return card_data == other_card.card_data
-
-# ===============================
-# 重写父类钩子方法
-# ===============================
+	return free
 
 ## 拖拽开始时的处理
 func _on_drag_started() -> void:
@@ -205,10 +166,39 @@ func _check_drop_targets() -> void:
 			print("无法堆叠到目标卡片")
 	# 如果没有找到目标卡片，卡片保持在当前拖拽结束的位置（自由放置）
 
-# ===============================
-# 信号回调（连接到场景中的信号）
-# ===============================
+#endregion
 
+#region 堆叠交互方法
+## 弹出一张卡
+func yield_card() -> CardViz:
+	if stack_counter.get_count() > 0:
+		return stack_counter.pop()
+	else:
+		return self
+
+## 接受其他卡片的放置
+func accept_dropped_card(dropped_card: CardViz) -> bool:
+	if not can_stack_with(dropped_card):
+		return false
+	
+	# 检查被拖拽的卡是否有自己的堆叠
+	if dropped_card.stack_counter.get_count() > 0:
+		# 合并两个堆叠
+		return stack_counter.merge(dropped_card.stack_counter)
+	else:
+		# 将单张卡加入当前堆叠
+		return stack_counter.push(dropped_card)
+
+## 检查是否可以与另一张卡堆叠
+func can_stack_with(other_card: CardViz) -> bool:
+	if other_card == null or other_card == self:
+		return false
+	
+	# 检查卡牌类型是否相同（你可以根据项目需求修改这个条件）
+	return card_data == other_card.card_data
+#endregion
+
+#region 信号回调（连接到场景中的信号）
 ## 鼠标进入逻辑（转发给父类）
 func _on_area_2d_mouse_entered() -> void:
 	_on_area_mouse_entered()
@@ -226,10 +216,9 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 			# 开始拖拽处理
 			_handle_mouse_input(mouse_event)
 
-# ===============================
-# 衰败系统
-# ===============================
+#endregion
 
+#region 衰败系统
 ## 检查并开始衰败（在卡片创建时调用）
 func _check_and_start_decay() -> void:
 	if not card_data:
@@ -304,22 +293,12 @@ func _on_decay_completed(decay_to_card: CardData) -> void:
 	# 转换当前卡片（只转换触发衰变的这张卡）
 	_transform_self(decay_to_card)
 
-# ===============================
-# 公开接口
-# ===============================
-
 ## 设置新的卡片数据（会重新初始化衰败）
 func set_card_data(new_card_data: CardData) -> void:
 	# 停止当前的衰败计时器
 	stop_decay()
 	
-	# 设置新数据
-	card_data = new_card_data
-	
-	# 重新设置卡片
-	setup_card()
-
-
+	load_card(new_card_data)
 
 ## 转换当前卡片自身
 func _transform_self(new_card_data: CardData) -> void:
@@ -356,11 +335,9 @@ func _play_transform_effect() -> void:
 	# var effect = preload("res://scenes/effects/transform_effect.tscn").instantiate()
 	# effect.global_position = global_position
 	# get_tree().current_scene.add_child(effect)
+#endregion
 
-# ===============================
-# 显示/隐藏和翻转功能（Unity 迁移）
-# ===============================
-
+#region 显示/隐藏和翻转功能
 ## 隐藏卡牌（设置 visuals 不可见）
 func hide_card() -> void:
 	if visuals:
@@ -420,49 +397,10 @@ func unhighlight_targets() -> void:
 	# 取消打开窗口的 slot 高亮
 	if Manager.GM.open_window and Manager.GM.open_window.has_method("unhighlight_slots"):
 		Manager.GM.open_window.unhighlight_slots()
-
-# ===============================
-# 加载和转换功能（Unity 迁移）
-# ===============================
-#region 保存和加载数据逻辑
-
-## 加载卡片数据（对应 Unity LoadCard）
-func load_card(card: CardData, load_fragments: bool = true) -> void:
-	if card == null:
-		return
-	
-	card_data = card
-	# 设置标题和图片
-	title_label.text = card.label.get_text() if card.label else ""
-	front_image.texture = card.image
-	
-	# 加载碎片
-	if load_fragments:
-		_load_fragments()
-	
-	# 设置节点名称
-	name = "[CARD] " + card.resource_path.get_file().get_basename()
-
-## 加载卡片的碎片数据
-func _load_fragments() -> void:
-	if not card_data or not frag_tree:
-		return
-	
-	# 添加卡片定义的碎片
-	for frag in card_data.fragments:
-		if frag != null:
-			frag_tree.add_fragment(frag)
-	
-	# 设置记忆碎片
-	if frag_tree.memory_fragment == null:
-		if card_data.memory_from_first and frag_tree.local_fragments.size() > 0:
-			frag_tree.memory_fragment = frag_tree.local_fragments[0].fragment
-		else:
-			frag_tree.memory_fragment = card_data
-
 #endregion
 
-## 转换卡片（对应 Unity Transform）
+
+## 转换卡片
 func transform_card(new_card: CardData) -> void:
 	if new_card == null:
 		return
@@ -516,7 +454,7 @@ func duplicate_card() -> CardViz:
 	
 	return new_card_viz
 
-## 设置父节点（对应 Unity ParentTo）
+## 设置父节点
 func parent_to(trans: Node, should_hide: bool = false) -> void:
 	if should_hide:
 		hide_card()
@@ -524,16 +462,10 @@ func parent_to(trans: Node, should_hide: bool = false) -> void:
 	interactive = false
 	free = false
 	
-	# 重新设置父节点
-	if get_parent():
-		get_parent().remove_child(self)
-	trans.add_child(self)
-	
-	# TODO: 重置本地位置
-	# position = Vector2.ZERO
+	NodeUtils.parent(self, trans)
 
-## 抓取卡片并移动到目标位置（对应 Unity Grab）
-func grab(target_pos: Vector3, on_start: Callable = Callable(), on_complete: Callable = Callable()) -> bool:
+## 抓取卡片并移动到目标位置
+func grab(target_pos: Vector2, on_start: Callable = Callable(), on_complete: Callable = Callable()) -> bool:
 	if not visible or not free:
 		return false
 	
@@ -683,7 +615,6 @@ func save_state() -> CardVizState:
 	var _save = CardVizState.new()
 	_save.save(self)
 	return _save
-	
 
 ## 加载卡片状态
 func load_state(save_data: Dictionary) -> void:
@@ -712,6 +643,41 @@ func load_state(save_data: Dictionary) -> void:
 	
 	# 注意：堆叠卡片和子卡片需要在所有卡片实例化后统一处理
 	# 这部分逻辑应该由 SaveManager 负责
+
+## 加载卡片数据
+func load_card(card: CardData, load_fragments: bool = true) -> void:
+	if card == null:
+		return
+	
+	card_data = card
+	# 设置标题和图片
+	title_label.text = card.label.get_text() if card.label else ""
+	front_image.texture = card.image
+	
+	# 加载碎片
+	if load_fragments:
+		_load_fragments()
+	
+	# 设置节点名称
+	name = "[CARD] " + card.resource_path.get_file().get_basename()
+
+## 加载卡片的碎片数据
+func _load_fragments() -> void:
+	if not card_data or not frag_tree:
+		return
+	
+	# 添加卡片定义的碎片
+	for frag in card_data.fragments:
+		if frag != null:
+			frag_tree.add_fragment(frag)
+	
+	# 设置记忆碎片
+	if frag_tree.memory_fragment == null:
+		if card_data.memory_from_first and frag_tree.local_fragments.size() > 0:
+			frag_tree.memory_fragment = frag_tree.local_fragments[0].fragment
+		else:
+			frag_tree.memory_fragment = card_data
+
 #endregion
 
 func destroy() -> void:

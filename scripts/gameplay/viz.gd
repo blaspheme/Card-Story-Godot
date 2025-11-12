@@ -1,5 +1,5 @@
 extends Node2D
-class_name DragCardViz
+class_name Viz
 
 ## 可拖拽卡片的基类
 ## 提供拖拽、高亮等通用功能，子类需实现抽象方法

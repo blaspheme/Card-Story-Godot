@@ -167,7 +167,7 @@ func destroy_token(_token_viz: TokenViz) -> void:
 	_token_viz.visible = true
 	_token_viz.queue_free()
 
-func spawn_act(_act: ActData, spawner: FragTree, viz: DragCardViz) -> TokenViz:
+func spawn_act(_act: ActData, spawner: FragTree, viz: Viz) -> TokenViz:
 	if _act == null or _act.token == null:
 		return null
 	var new_token_viz = spawn_token(_act.token, spawner, viz)
@@ -178,7 +178,7 @@ func spawn_act(_act: ActData, spawner: FragTree, viz: DragCardViz) -> TokenViz:
 
 
 @warning_ignore("unused_parameter")
-func spawn_token(_token: TokenData, spawner: FragTree, viz: DragCardViz) -> TokenViz:
+func spawn_token(_token: TokenData, spawner: FragTree, viz: Viz) -> TokenViz:
 	if _token == null:
 		return null
 

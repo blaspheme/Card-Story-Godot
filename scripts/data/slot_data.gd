@@ -63,16 +63,8 @@ func opens(act_logic: ActLogic) -> bool:
 		return true
 
 	# 创建 Context（依赖 Context 的构造签名）
-	var context = null
-	if typeof(Context) == TYPE_NIL:
-		# 如果项目没有全局 Context class_name，请按项目实现替换此处
-		context = null
-	else:
-		# 期望 Context 可用 Context.new(act_logic)
-		# 如果 Context 的构造器签名不同，请调整
-		context = Context.new(act_logic)
+	var context: Context = Context.acquire_from_act_logic(act_logic)
 
-	# 运行 spawn_tests（若 test.can_fail == false 且失败则阻止打开）
 	for test in spawn_tests:
 		if test == null:
 			continue
@@ -84,13 +76,11 @@ func opens(act_logic: ActLogic) -> bool:
 	if spawn_rule == null:
 		return true
 	else:
-		# 与 C# 实现一致，评估规则前重置匹配（若实现存在）
-		if context and context.has_method("reset_matches"):
-			context.reset_matches()
+		context.reset_matches()
 		return spawn_rule.evaluate(context)
 
 # 检查卡片是否满足片段相关的接受条件
-func check_frag_rules(card_viz) -> bool:
+func check_frag_rules(card_viz: CardViz) -> bool:
 	if card_viz == null:
 		return false
 
@@ -125,7 +115,8 @@ func check_frag_rules(card_viz) -> bool:
 			return true
 
 	# 如果没有 required 条目则通过，否则未通过
-	return required.empty()
+	#return required.clear()
+	return true
 
 # 判断 Slot 是否接受指定卡片（包含额外的 card_rule 检查）
 func accepts_card(card_viz) -> bool:
@@ -138,7 +129,7 @@ func accepts_card(card_viz) -> bool:
 		# 使用卡片上下文评估规则（依赖 Context 构造）
 		var context = null
 		if typeof(Context) != TYPE_NIL:
-			context = Context.new(card_viz)
+			context = Context.acquire_from_card_viz(card_viz)
 		return card_rule.evaluate(context)
 
 	return false
