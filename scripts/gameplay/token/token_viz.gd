@@ -1,16 +1,14 @@
 extends DragCardViz
 class_name TokenViz
 
+#region 参数
+@export_category("Token")
 @export var token_data: TokenData
 @export var auto_play: ActData
 @export var init_rule: RuleData
 @export var memory_fragment: FragmentData
 
-
-
-# ===============================
 # SceneTree引用
-# ===============================
 @onready var area: Area2D = $Area2D
 @onready var title: Label = $Visuals/Label
 @onready var front_image: TextureRect = $Visuals/Image
@@ -18,30 +16,23 @@ class_name TokenViz
 @onready var mat: ShaderMaterial = $Visuals/Background.material
 @onready var token_timer: TokenTimer = $Timer
 
-# ===============================
-# 生命周期方法
-# ===============================
+var act_window: ActWindow
+var result_count: int
+#endregion
+
+#region 生命周期方法
 func _ready() -> void:
-	# 初始化拖拽系统（父类方法）
+	load_token(token_data)
+	dragging_plane = Manager.GM.card_drag_plane
 	_init_drag_system()
-	
-	# 如果有卡片数据，进行初始化
-	setup_data()
 	token_timer.start_timer(5)
-	
-	
-## 设置卡片数据和外观
-func setup_data() -> void:
-	if not token_data:
-		return
-	
-	# 卡牌特有的初始化
-	front_image.texture = token_data.image
+	if act_window == null:
+		act_window = Manager.GM.create_window()
 
-# ===============================
-# 实现父类抽象方法
-# ===============================
+	Manager.GM.add_token(self)
+#endregion
 
+#region 实现父类抽象方法
 ## 获取 Area2D 节点
 func _get_area() -> Area2D:
 	return area
@@ -58,11 +49,9 @@ func _get_material() -> ShaderMaterial:
 func _can_start_drag() -> bool:
 	# 始终允许拖拽，具体的弹出逻辑在_on_drag_started中处理
 	return true
+#endregion
 
-# ===============================
-# 信号回调（连接到场景中的信号）
-# ===============================
-
+#region 信号回调（连接到场景中的信号）
 ## 鼠标进入逻辑（转发给父类）
 func _on_area_2d_mouse_entered() -> void:
 	_on_area_mouse_entered()
@@ -79,7 +68,7 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 			# 开始拖拽处理
 			_handle_mouse_input(mouse_event)
-
+#endregion
 
 #region 保存和加载数据逻辑
 func load_token(_token: TokenData) -> void:
@@ -88,8 +77,7 @@ func load_token(_token: TokenData) -> void:
 
 	token_data = _token
 	title.text = str(_token.label)
-	front_image.texture = _token.art
+	front_image.texture = _token.image
 
-	name = "[TOKEN] " + str(_token.resource_name)
-
+	name = "[TOKEN] " + _token.resource_path.get_file().get_basename()
 #endregion

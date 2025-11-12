@@ -1,6 +1,7 @@
 class_name TokenData
 extends Resource
 
+#region 属性定义
 @export var label : String
 @export var image : Texture2D
 ## 没有设置 image 时候的颜色
@@ -19,3 +20,4 @@ extends Resource
 @export var dissolve : bool = false
 ## 游戏运行时只能存在一个的实例
 @export var unique : bool = false
+#endregion

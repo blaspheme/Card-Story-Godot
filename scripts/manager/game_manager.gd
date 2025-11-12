@@ -201,3 +201,10 @@ func set_all_time(time: float) -> void:
 	all_time = time
 	max_time = 0.0
 #endregion
+
+#region 保存&加载
+func save_state() -> void:
+	var _save = GameManagerState.new();
+	_save.save(self)
+
+#endregion

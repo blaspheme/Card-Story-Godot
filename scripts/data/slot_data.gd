@@ -2,7 +2,7 @@ class_name SlotData
 extends Resource
 
 # Slot: 动词
-
+#region 属性定义
 @export var label : String
 @export_multiline var description : String
 ## 当Card插入Slot的时候，fragments会被添加到 Act window
@@ -54,3 +54,93 @@ extends Resource
 @export var grab_from_global: bool = false
 ## 从当前 Act 窗口内抓取卡片（只在本窗口的卡里寻找并插入槽）
 @export var grab_from_window : bool = false
+#endregion
+
+#region 公开方法
+# 判断该 Slot 是否应该为某个 ActLogic 打开（Spawn 条件）
+func opens(act_logic: ActLogic) -> bool:
+	if spawn_tests.size() == 0 and spawn_rule == null:
+		return true
+
+	# 创建 Context（依赖 Context 的构造签名）
+	var context = null
+	if typeof(Context) == TYPE_NIL:
+		# 如果项目没有全局 Context class_name，请按项目实现替换此处
+		context = null
+	else:
+		# 期望 Context 可用 Context.new(act_logic)
+		# 如果 Context 的构造器签名不同，请调整
+		context = Context.new(act_logic)
+
+	# 运行 spawn_tests（若 test.can_fail == false 且失败则阻止打开）
+	for test in spawn_tests:
+		if test == null:
+			continue
+		var r = test.attempt(context)
+		if not test.can_fail and r == false:
+			return false
+
+	# 如果没有 spawn_rule，则通过
+	if spawn_rule == null:
+		return true
+	else:
+		# 与 C# 实现一致，评估规则前重置匹配（若实现存在）
+		if context and context.has_method("reset_matches"):
+			context.reset_matches()
+		return spawn_rule.evaluate(context)
+
+# 检查卡片是否满足片段相关的接受条件
+func check_frag_rules(card_viz) -> bool:
+	if card_viz == null:
+		return false
+
+	# essential: 必须对每个 essential 满足 count
+	for frag_l in essential:
+		if frag_l == null:
+			continue
+		var c = 0
+		if card_viz.frag_tree and card_viz.frag_tree.has_method("count"):
+			c = card_viz.frag_tree.count(frag_l)
+		if c < int(frag_l.count):
+			return false
+
+	# forbidden: 对每个 forbidden 必须小于 count
+	for frag_l in forbidden:
+		if frag_l == null:
+			continue
+		var c = 0
+		if card_viz.frag_tree and card_viz.frag_tree.has_method("count"):
+			c = card_viz.frag_tree.count(frag_l)
+		if c >= int(frag_l.count):
+			return false
+
+	# required: 如果存在任意一个 required 满足 count 则通过
+	for frag_l in required:
+		if frag_l == null:
+			continue
+		var c = 0
+		if card_viz.frag_tree and card_viz.frag_tree.has_method("count"):
+			c = card_viz.frag_tree.count(frag_l)
+		if c >= int(frag_l.count):
+			return true
+
+	# 如果没有 required 条目则通过，否则未通过
+	return required.empty()
+
+# 判断 Slot 是否接受指定卡片（包含额外的 card_rule 检查）
+func accepts_card(card_viz) -> bool:
+	if accept_all:
+		return true
+
+	if card_viz != null and check_frag_rules(card_viz):
+		if card_rule == null:
+			return true
+		# 使用卡片上下文评估规则（依赖 Context 构造）
+		var context = null
+		if typeof(Context) != TYPE_NIL:
+			context = Context.new(card_viz)
+		return card_rule.evaluate(context)
+
+	return false
+
+#endregion

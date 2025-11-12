@@ -1,6 +1,7 @@
 class_name ActData
 extends Resource
 
+#region 属性定义
 @export var label: String = ""
 ## 限制此 Act 只能在指定的 Token 类型上执行；对于 initial 与 spawned Acts 是必须设置的。
 @export var token:  TokenData
@@ -73,3 +74,4 @@ extends Resource
 @export var text_rules: Array[RuleData]
 @export_multiline var end_text: String
 @export var end_text_rules: Array[RuleData]
+#endregion

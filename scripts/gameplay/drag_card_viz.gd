@@ -10,7 +10,7 @@ class_name DragCardViz
 var is_dragging := false
 var drag_offset := Vector2.ZERO
 var original_z_index: int = 0
-var dragging_plane: Control
+var dragging_plane: Node
 # ===============================
 # 缓存引用（由子类在 _ready 中初始化）
 # ===============================
@@ -19,10 +19,7 @@ var _background: Node2D
 var _mat: ShaderMaterial
 var _tween: Tween
 
-# ===============================
-# 抽象方法（子类必须实现）
-# ===============================
-
+#region 抽象方法
 ## 获取 Area2D 节点（用于输入检测）
 func _get_area() -> Area2D:
 	push_error("DragCardViz._get_area() 必须被子类重写")
@@ -41,11 +38,9 @@ func _get_material() -> ShaderMaterial:
 ## 检查是否允许拖拽（子类可重写以添加额外条件）
 func _can_start_drag() -> bool:
 	return true
+#endregion
 
-# ===============================
-# 初始化方法（子类在 _ready 中调用）
-# ===============================
-
+#region 初始化方法（子类在 _ready 中调用）
 ## 初始化拖拽系统（子类必须在 _ready 中调用）
 func _init_drag_system() -> void:
 	_area = _get_area()
@@ -65,6 +60,7 @@ func _init_drag_system() -> void:
 	
 	# 默认不处理输入（只在拖拽时启用）
 	set_process_input(false)
+#endregion
 
 #region 动画方法
 ## 创建 Tween 动画
@@ -198,26 +194,3 @@ func _input(event: InputEvent) -> void:
 			_end_drag()
 			# 标记事件已处理
 			get_viewport().set_input_as_handled()
-
-#region 节点操作
-## 将当前节点重新设置父节点
-func parent(new_parent: Node) -> void:
-	var old_parent := get_parent()
-	if old_parent == new_parent:
-		return
-
-	# 从旧父级移除并添加到新父级
-	if old_parent:
-		old_parent.remove_child(self)
-	if new_parent:
-		new_parent.add_child(self)
-
-	var old_frag = NodeUtils.get_parent_of_type(old_parent, FragTree) as FragTree
-	if old_frag:
-		old_frag.on_change()
-
-	var new_frag := NodeUtils.get_parent_of_type(new_parent, FragTree) as FragTree
-	if new_frag:
-		new_frag.on_change()
-		new_frag.on_add_card(self)
-#endregion

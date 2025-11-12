@@ -6,8 +6,8 @@ class_name ActLogic
 # ===============================
 
 # 组件引用
-@onready var frag_tree: FragTree = get_node("../FragTree") if has_node("../FragTreeFragTree") else null
-@onready var act_window = get_parent() # ActWindow 是父节点
+@onready var frag_tree: FragTree = $"../Root"
+@onready var act_window = $".." # ActWindow 是父节点
 
 # 当前激活的 Act
 var active_act: ActData = null
@@ -76,7 +76,7 @@ func check_for_slots() -> Array[SlotData]:
 	else:
 		# 没有 active_act 时的逻辑
 		if token_viz != null and token_viz.token != null and token_viz.token.slot != null:
-			slots_to_open.append(token_viz.token.slot)
+			slots_to_open.append(token_viz.token_data.slot)
 		
 		# 从 cards 收集 slots
 		for card_viz in frag_tree.cards():

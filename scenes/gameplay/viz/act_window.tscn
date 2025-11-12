@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://ddaduqkgrarml"]
+[gd_scene load_steps=7 format=3 uid="uid://ddaduqkgrarml"]
 
 [ext_resource type="Script" uid="uid://dqcrtn7wnmpc1" path="res://scripts/gameplay/act/act_window.gd" id="1_7wm8j"]
 [ext_resource type="Script" uid="uid://j27b5u5j4pej" path="res://scripts/gameplay/act/act_logic.gd" id="2_sb48q"]
 [ext_resource type="Script" uid="uid://bd1rngn7fll0x" path="res://scripts/gameplay/act/card_lane.gd" id="2_x0mbc"]
+[ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="3_sb48q"]
 [ext_resource type="PackedScene" uid="uid://bb82rjto665im" path="res://scenes/gameplay/widgets/timer.tscn" id="4_0x7c6"]
 [ext_resource type="PackedScene" uid="uid://bl2btp6irrfcg" path="res://scenes/gameplay/viz/slot_viz.tscn" id="5_t0h1x"]
 
@@ -13,6 +14,7 @@ script = ExtResource("1_7wm8j")
 script = ExtResource("2_sb48q")
 
 [node name="Root" type="Node" parent="."]
+script = ExtResource("3_sb48q")
 
 [node name="Visuals" type="Node2D" parent="."]
 
@@ -33,6 +35,7 @@ offset_bottom = 650.0
 script = ExtResource("2_x0mbc")
 
 [node name="Root" type="Node" parent="ResultsLane"]
+script = ExtResource("3_sb48q")
 
 [node name="Slots" type="Node" parent="."]
 

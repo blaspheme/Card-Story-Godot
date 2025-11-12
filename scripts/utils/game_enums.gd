@@ -72,9 +72,9 @@ enum TableOp {
 
 #region Act 状态枚举
 enum ActStatus {
-    IDLE = 0,
-    READY = 1,
-    RUNNING = 2,
-    FINISHED = 3,
+	IDLE = 0,
+	READY = 1,
+	RUNNING = 2,
+	FINISHED = 3,
 }
 #endregion

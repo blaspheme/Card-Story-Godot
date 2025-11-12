@@ -72,10 +72,7 @@ func setup_card() -> void:
 	if not card_data:
 		return
 	
-	# 卡牌特有的初始化
-	title_label.text = card_data.label.get_text()
-	front_image.texture = card_data.image
-	back_image.texture = card_data.image
+	load_card(card_data)
 	
 	# 组件赋值
 	stack_counter._parent_card = self
@@ -669,44 +666,24 @@ func _handle_double_click() -> void:
 		if ready_slot.has_method("grab_card"):
 			ready_slot.grab_card(card_viz_y, true)
 
-# ===============================
-# 保存/加载系统（Unity 迁移）
-# ===============================
 
+## 检查记忆是否相等（对应 Unity MemoryEqual）
+func memory_equal(other_card: CardViz) -> bool:
+	if other_card == null:
+		return false
+	return other_card.card_data == card_data and \
+		   other_card.frag_tree.memory_fragment == frag_tree.memory_fragment
+
+# ===============================
+# 内部辅助方法
+# ===============================
+#region 保存&加载
 ## 保存卡片状态
-func save_state() -> Dictionary:
-	var save_data = {
-		"id": get_instance_id(),
-		"card": card_data.resource_path if card_data else "",
-		"frag_save": frag_tree.save_state() if frag_tree else {},
-		"free": free,
-		"face_down": _face_down,
-		"position": global_position
-	}
+func save_state() -> CardVizState:
+	var _save = CardVizState.new()
+	_save.save(self)
+	return _save
 	
-	# 保存衰败状态
-	if decay_timer and decay_timer.has_method("time_left") and decay_timer.time_left() > 0.0:
-		save_data["decay_save"] = {
-			"time_left": decay_timer.time_left(),
-			"decay_to": decay_timer.decay_to_card.resource_path if decay_timer.decay_to_card else ""
-		}
-	
-	# 保存堆叠卡片
-	if stack_counter and stack_counter.get_count() > 1:
-		save_data["stacked_cards"] = []
-		for stacked_card in stack_counter.get_all_cards():
-			save_data["stacked_cards"].append(stacked_card.get_instance_id())
-	
-	# 保存子卡片
-	if frag_tree:
-		var direct_cards = frag_tree.direct_cards()
-		if direct_cards.size() > 1:
-			save_data["child_cards"] = []
-			for child_card in direct_cards:
-				if child_card != self:
-					save_data["child_cards"].append(child_card.get_instance_id())
-	
-	return save_data
 
 ## 加载卡片状态
 func load_state(save_data: Dictionary) -> void:
@@ -735,14 +712,7 @@ func load_state(save_data: Dictionary) -> void:
 	
 	# 注意：堆叠卡片和子卡片需要在所有卡片实例化后统一处理
 	# 这部分逻辑应该由 SaveManager 负责
+#endregion
 
-## 检查记忆是否相等（对应 Unity MemoryEqual）
-func memory_equal(other_card: CardViz) -> bool:
-	if other_card == null:
-		return false
-	return other_card.card_data == card_data and \
-		   other_card.frag_tree.memory_fragment == frag_tree.memory_fragment
-
-# ===============================
-# 内部辅助方法
-# ===============================
+func destroy() -> void:
+	Manager.GM.destroy_card(self)

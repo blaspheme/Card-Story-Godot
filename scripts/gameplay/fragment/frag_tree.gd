@@ -144,7 +144,7 @@ func adjust_card_viz(_card_viz: CardViz, level: int) -> int:
 
 	return 0
 
-func adjust_card(card, level: int) -> int:
+func adjust_card(card: CardData, level: int) -> int:
 	if card == null:
 		return 0
 

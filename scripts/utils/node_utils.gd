@@ -48,14 +48,14 @@ static func get_parent_of_type(node: Node, type_class: Variant) -> Node:
 ## @param parent: 父节点
 ## @param child: 要添加的子节点
 ## @param custom_name: 自定义节点名称（可选）
-static func add_child_safe(parent: Node, child: Node, custom_name: String = "") -> void:
-	assert(parent != null, "node_utils.add_child_safe: parent 不能为 null")
+static func add_child_safe(_parent: Node, child: Node, custom_name: String = "") -> void:
+	assert(_parent != null, "node_utils.add_child_safe: parent 不能为 null")
 	assert(child != null, "node_utils.add_child_safe: child 不能为 null")
 	
 	if custom_name != "":
 		child.name = custom_name
 	if not child.is_inside_tree():
-		parent.add_child(child)
+		_parent.add_child(child)
 	else:
 		push_warning("NodeUtils.add_child_safe: 节点已在场景树中: %s" % child.name)
 
@@ -65,9 +65,9 @@ static func add_child_safe(parent: Node, child: Node, custom_name: String = "") 
 static func remove_child_safe(node: Node) -> void:
 	if node == null:
 		return
-	var parent := node.get_parent()
-	if parent:
-		parent.remove_child(node)
+	var _parent := node.get_parent()
+	if _parent:
+		_parent.remove_child(node)
 
 
 ## 销毁节点（延迟删除，防止报错）
@@ -77,3 +77,26 @@ static func delete_node_safe(node: Node) -> void:
 		return
 	if not node.is_queued_for_deletion():
 		node.queue_free()
+
+## 将当前节点重新设置父节点
+## @param _current: 要操作的节点
+## @param new_parent: 新父节点
+static func parent(_current: Node ,new_parent: Node) -> void:
+	var old_parent := _current.get_parent()
+	if old_parent == new_parent:
+		return
+
+	# 从旧父级移除并添加到新父级
+	if old_parent:
+		old_parent.remove_child(_current)
+	if new_parent:
+		new_parent.add_child(_current)
+
+	var old_frag = NodeUtils.get_parent_of_type(old_parent, FragTree) as FragTree
+	if old_frag:
+		old_frag.on_change()
+
+	var new_frag := NodeUtils.get_parent_of_type(new_parent, FragTree) as FragTree
+	if new_frag:
+		new_frag.on_change()
+		new_frag.on_add_card(_current)
