@@ -1,11 +1,36 @@
+@tool  # 启用编辑器模式，支持实时预览
 extends Table
 class_name ArrayTable
 
 #region 参数定义
 # 网格实现：使用 Vector2i 格坐标
-@export var cell_size: Vector2 = Vector2(64, 64)   # 单元格大小（像素）
-@export var cell_count: Vector2i = Vector2i(8, 5) # 初始格数 (x,y)
-@export var grow_step: int = 2                    # 扩容步长（每侧）
+@export var cell_size: Vector2 = Vector2(64, 64):   # 单元格大小（像素）
+	set(value):
+		cell_size = value
+		_update_grid_corner()
+		queue_redraw()  # 触发重绘
+@export var cell_count: Vector2i = Vector2i(8, 5):  # 初始格数 (x,y)
+	set(value):
+		cell_count = value
+		if _array:
+			_array = SArray.new(cell_count.x, cell_count.y, null)
+		_update_grid_corner()
+		queue_redraw()  # 触发重绘
+@export var grow_step: int = 2                      # 扩容步长（每侧）
+
+## 网格绘制设置
+@export_group("Grid Display")
+@export var show_grid := true:  # 是否显示网格
+	set(value):
+		show_grid = value
+		queue_redraw()
+@export var grid_color := Color(0.5, 0.5, 0.5, 0.3)  # 网格线颜色
+@export var grid_width := 1.0  # 网格线宽度
+@export var show_cell_coords := false:  # 是否显示单元格坐标
+	set(value):
+		show_cell_coords = value
+		queue_redraw()
+@export var coord_color := Color(0.8, 0.8, 0.8, 0.6)  # 坐标文本颜色
 
 # 内部 occupancy 存储（扁平数组），等价于原 SArray<Viz>
 var _array : SArray
@@ -18,18 +43,74 @@ var directions4 := [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]
 
 #region 生命周期方法
 func _ready() -> void:
-	_array = SArray.new(cell_count.x, cell_count.y, Viz)
-	frag_tree = NodeUtils.find_children_recursive(self, FragTree, false)[0] as FragTree
+	if not _array:
+		_array = SArray.new(cell_count.x, cell_count.y, null)
+	if not Engine.is_editor_hint():
+		var frag_trees := NodeUtils.find_children_recursive(self, FragTree, false)
+		if frag_trees.size() > 0:
+			frag_tree = frag_trees[0] as FragTree
 	_update_grid_corner()
+	queue_redraw()
+
+func _draw() -> void:
+	if not show_grid:
+		return
+	
+	_draw_grid()
+	
+	if show_cell_coords:
+		_draw_cell_coords()
 
 func _update_grid_corner() -> void:
 	plane_width = cell_count.x * cell_size.x
 	plane_height = cell_count.y * cell_size.y
 	grid_corner = 0.5 * Vector2(-plane_width, -plane_height)
-	# 注册场景中已有子节点
-	for child in get_children():
-		if child is Viz:
-			on_card_dock(child)
+	
+	# 在运行时注册场景中已有子节点
+	if not Engine.is_editor_hint():
+		for child in get_children():
+			if child is Viz:
+				on_card_dock(child)
+	
+	queue_redraw()
+
+#endregion
+
+#region 网格绘制
+## 绘制网格线
+func _draw_grid() -> void:
+	# 绘制垂直线
+	for x in range(cell_count.x + 1):
+		var start := grid_corner + Vector2(x * cell_size.x, 0)
+		var end := start + Vector2(0, plane_height)
+		draw_line(start, end, grid_color, grid_width)
+	
+	# 绘制水平线
+	for y in range(cell_count.y + 1):
+		var start := grid_corner + Vector2(0, y * cell_size.y)
+		var end := start + Vector2(plane_width, 0)
+		draw_line(start, end, grid_color, grid_width)
+	
+	# 绘制外框（加粗）
+	var rect := Rect2(grid_corner, Vector2(plane_width, plane_height))
+	draw_rect(rect, grid_color, false, grid_width * 2)
+
+## 绘制单元格坐标
+func _draw_cell_coords() -> void:
+	# 需要字体才能绘制文本，这里使用默认主题字体
+	var font := ThemeDB.fallback_font
+	var font_size := 12
+	
+	for x in range(cell_count.x):
+		for y in range(cell_count.y):
+			var cell_center := to_local_position(Vector2i(x, y))
+			var coord_text := "(%d,%d)" % [x, y]
+			
+			# 计算文本尺寸以居中显示
+			var text_size := font.get_string_size(coord_text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
+			var text_pos := cell_center - text_size / 2
+			
+			draw_string(font, text_pos, coord_text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, coord_color)
 
 #endregion
 
@@ -49,10 +130,10 @@ func remove(viz: Viz) -> void:
 	on_card_undock(viz)
 
 func on_card_undock(viz: Viz) -> void:
-	#Table.on_card_undock(self, viz)
+	super.on_card_undock(viz)
 
-	if last_locations.has(viz):
-		var v = last_locations[viz]
+	var v = get_last_location(viz)
+	if v != null:
 		_array.for_v(v, viz.get_cell_size(), func(_current): return null)
 
 ## 单对象螺旋搜索
@@ -65,7 +146,7 @@ func find_free_location(grid_ref: Variant, viz:Viz) -> bool:
 
 	while not fits_in_location(v, size):
 		var phase4 = phase % 4
-		var distance = 1 + phase / 4
+		var distance = floori(phase / 4.0) + 1  # 修复整数除法警告
 		var new_v = v + directions4[phase4]
 		if abs(directions4[phase4].x * (new_v.x - origin.x)) <= distance and abs(directions4[phase4].y * (new_v.y - origin.y)) <= distance:
 			v = new_v
@@ -142,19 +223,6 @@ func _next_cell(v: Vector2i, size: Vector2i) -> Vector2i:
 			v.y = cell_count.y - size.y
 	return v
 
-
-
-# 内部复用基类 place 行为（因为我们重写 place）
-func _place_parent_and_move(viz: Node, grid_coord: Vector2i, move_speed: float) -> void:
-	# 基类 place
-	if viz.has_method("parent_to"):
-		viz.parent_to(self)
-	else:
-		#viz.get_parent()?.remove_child(viz)
-		add_child(viz)
-	#_domove(viz, grid_coord, move_speed)
-	#last_locations[viz] = grid_coord
-
 ## 占位检查
 func fits_in_location(v: Vector2i, size: Vector2i) -> bool:
 	return _array.all_v(v, size, func(a): return a == null)
@@ -175,4 +243,7 @@ func grow(i: int) -> void:
 	var keys = last_locations.keys()
 	for k in keys:
 		last_locations[k] = last_locations[k] + Vector2i(int(i), int(i))
+	
+	# 触发重绘
+	queue_redraw()
 #endregion
