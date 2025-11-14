@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://4fyoq8npekf0"]
+[gd_scene load_steps=15 format=3 uid="uid://4fyoq8npekf0"]
 
 [ext_resource type="Script" uid="uid://clnensqaofqvj" path="res://scripts/manager/game_manager.gd" id="1_gh441"]
 [ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="2_2p25t"]
@@ -9,6 +9,11 @@
 [ext_resource type="PackedScene" uid="uid://bo3aon3ewih7e" path="res://scenes/gameplay/viz/token_viz.tscn" id="4_m3hu3"]
 [ext_resource type="Resource" uid="uid://d1snferhrgesj" path="res://resources/sos/___MatchedCards.tres" id="4_td3fc"]
 [ext_resource type="Resource" uid="uid://8xur4jsyqyi" path="res://resources/sos/___MemoryFragment.tres" id="5_216mg"]
+[ext_resource type="Script" uid="uid://dh1fenjuvn3sb" path="res://scripts/manager/ui_manager.gd" id="6_bhb63"]
+[ext_resource type="Script" uid="uid://bdwsjomcfjv2w" path="res://scripts/table/array_table.gd" id="7_lb4ud"]
+[ext_resource type="PackedScene" uid="uid://dinc0dm8xp43h" path="res://scenes/gameplay/ui/card_info.tscn" id="12_i6m2i"]
+[ext_resource type="PackedScene" uid="uid://buktl7sof06al" path="res://scenes/gameplay/ui/aspect_info.tscn" id="13_td3fc"]
+[ext_resource type="PackedScene" uid="uid://cjcqibb0ddp82" path="res://scenes/gameplay/ui/control.tscn" id="14_216mg"]
 
 [node name="Gameplay" type="Node"]
 
@@ -24,26 +29,55 @@ this_card = ExtResource("3_i6m2i")
 matched_card = ExtResource("4_td3fc")
 memory_fragment = ExtResource("5_216mg")
 
+[node name="UIManager" type="Node" parent="Manager"]
+script = ExtResource("6_bhb63")
+
 [node name="Root" type="Node" parent="."]
 script = ExtResource("2_2p25t")
 
 [node name="Table" type="Node2D" parent="Root"]
+script = ExtResource("7_lb4ud")
+
+[node name="TableFrag" type="Node" parent="Root/Table"]
 script = ExtResource("2_2p25t")
 
-[node name="CardViz1" parent="Root/Table" instance=ExtResource("2_x0t60")]
+[node name="CardViz1" parent="Root/Table/TableFrag" instance=ExtResource("2_x0t60")]
 position = Vector2(837, 381)
 card_data = ExtResource("3_m3hu3")
 
-[node name="CardViz" parent="Root/Table" instance=ExtResource("2_x0t60")]
+[node name="CardViz" parent="Root/Table/TableFrag" instance=ExtResource("2_x0t60")]
 position = Vector2(289, 262)
 card_data = ExtResource("3_m3hu3")
 
-[node name="CardViz2" parent="Root/Table" instance=ExtResource("2_x0t60")]
+[node name="CardViz2" parent="Root/Table/TableFrag" instance=ExtResource("2_x0t60")]
 position = Vector2(583, 199)
 
-[node name="TokenViz" parent="Root/Table" instance=ExtResource("4_m3hu3")]
+[node name="TokenViz" parent="Root/Table/TableFrag" instance=ExtResource("4_m3hu3")]
 position = Vector2(551, 719)
 
 [node name="WindowPlane" type="Node" parent="Root"]
 
 [node name="CardDragPlane" type="Node" parent="Root"]
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CardInfo" parent="UI" instance=ExtResource("12_i6m2i")]
+layout_mode = 1
+offset_left = 2.24
+offset_right = -1377.7598
+mouse_filter = 2
+
+[node name="AspectInfo" parent="UI" instance=ExtResource("13_td3fc")]
+layout_mode = 1
+mouse_filter = 2
+
+[node name="Control" parent="UI" instance=ExtResource("14_216mg")]
+layout_mode = 1
+mouse_filter = 2

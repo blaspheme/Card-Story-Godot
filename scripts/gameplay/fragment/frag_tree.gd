@@ -166,10 +166,11 @@ func adjust_card(card: CardData, level: int) -> int:
 
 	return 0
 
-func count_card(card, only_free: bool=false) -> int:
+func count_card(card:CardData, only_free: bool=false) -> int:
 	if only_free:
-		return free_cards().filter(func(c): return c.card == card).size()
-	return cards().filter(func(c): return c.card == card).size()
+		return free_cards().filter(func(c: CardViz): return c.card_data == card).size()
+	else:
+		return cards().filter(func(c: CardViz): return c.card_data == card).size()
 #endregion
 
 #region Node操作，没有验证

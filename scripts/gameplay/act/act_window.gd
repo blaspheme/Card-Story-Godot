@@ -311,7 +311,7 @@ func apply_status(new_status: GameEnums.ActStatus) -> void:
 				if ok_button:
 					ok_button.disabled = false
 				if label_text:
-					label_text.text = ready_act.label
+					label_text.text = ready_act.label.get_text()
 				if text_display and act_logic:
 					text_display.text = act_logic.get_text(ready_act)
 				if token_viz:

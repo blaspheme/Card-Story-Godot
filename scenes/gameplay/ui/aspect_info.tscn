@@ -1,0 +1,45 @@
+[gd_scene load_steps=2 format=3 uid="uid://buktl7sof06al"]
+
+[ext_resource type="Script" uid="uid://5yd4fhkiremb" path="res://scripts/ui/aspect_info.gd" id="1_ni66k"]
+
+[node name="AspectInfo" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1480.0
+offset_bottom = -1000.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ni66k")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Image" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 104.0
+
+[node name="Name" type="Label" parent="."]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 10.0
+offset_right = 478.0
+offset_bottom = 40.0
+text = "Card Name"
+
+[node name="Description" type="Label" parent="."]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 50.0
+offset_right = 472.0
+offset_bottom = 104.0
+text = "Description"

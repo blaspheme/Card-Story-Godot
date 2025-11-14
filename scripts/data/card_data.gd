@@ -19,3 +19,24 @@ extends FragmentData
 @export_category("Memory")
 @export var memory_from_first : bool = false
 #endregion
+
+#region 公开方法
+func add_to_tree(fg: FragTree) -> void:
+	fg.add_card(self)
+
+func adjust_in_tree(fg: FragTree, level: int) -> int:
+	return fg.adjust_card(self, level)
+
+func remove_from_tree(fg: FragTree) -> void:
+	fg.remove_card(self)
+
+func count_in_tree(fg: FragTree, only_free: bool=false) -> int:
+	return fg.count_card(self, only_free)
+
+func is_mutator() -> bool:
+	var s := label.get_text()
+	if s == null:
+		return false
+	return s.length() >= 4 and s.begins_with("{{") and s.ends_with("}}")
+
+#endregion

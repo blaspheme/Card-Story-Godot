@@ -2,7 +2,7 @@ class_name ActData
 extends Resource
 
 #region 属性定义
-@export var label: String = ""
+@export var label: TextData
 ## 限制此 Act 只能在指定的 Token 类型上执行；对于 initial 与 spawned Acts 是必须设置的。
 @export var token:  TokenData
 ## 是否为 Act 链中的第一个，可由玩家按钮触发启动
@@ -70,8 +70,23 @@ extends Resource
 # Act 上的文本
 # ===============================
 @export_category("Texts")
-@export_multiline var text: String
+@export var text: TextData
 @export var text_rules: Array[RuleData]
-@export_multiline var end_text: String
+@export var end_text: TextData
 @export var end_text_rules: Array[RuleData]
+#endregion
+
+#region 公开方法
+func attempt(context, force: bool=false) -> bool:
+	return RuleData.evaluate_all(context, tests, and_rules, or_rules, force)
+
+func apply_modifiers(context) -> void:
+	# 调用 Rule.execute 将本 Act 的 modifiers 评估并加入 context
+	RuleData.execute_all(context,
+		act_modifiers,
+		card_modifiers,
+		table_modifiers,
+		path_modifiers,
+		deck_modifiers,
+		furthermore)
 #endregion

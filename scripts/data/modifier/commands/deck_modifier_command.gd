@@ -2,30 +2,21 @@ extends RefCounted
 class_name DeckModifierCommand
 
 # 牌堆相关 modifier 的命令实现。
-# 尽量贴合 Modifier.cs 的 Execute 行为，依赖上下文契约（context.scope, deck 对象等）。
-
 var op = GameEnums.DeckOp.Draw
-var deck = null
-var target = null
+var deck: DeckData
+var target: Target
 
-func setup(...varargs: Array) -> void:
-	# 支持签名：setup(op, deck, target)
-	var _op = varargs[0] if varargs.size() > 0 else null
-	var _deck = varargs[1] if varargs.size() > 1 else null
-	var _target = varargs[2] if varargs.size() > 2 else null
-	op = _op as GameEnums.DeckOp
-	deck = _deck
-	target = _target
-
-func execute(context) -> void:
-	assert(context != null)
+func execute(context: Context) -> void:
+	if context == null or context.scope == null or deck == null:
+		return
+	
 	match op:
 		GameEnums.DeckOp.Draw:
 			# 简化实现：尝试多次从 deck.Draw() 获取可用 fragment 并创建卡牌
 			var max_tries = 3
-			var frag = null
-			while max_tries > 0:
-				frag = deck.Draw()
+			var frag: FragmentData = null
+			while max_tries > 0 and Manager.GM._allowed_to_create(frag) == false:
+				frag = deck.draw()
 				max_tries -= 1
 				# 这里假设存在 GameManager.AllowedToCreate 或类似逻辑；如果不存在，直接使用 frag
 				break
@@ -55,7 +46,7 @@ func execute(context) -> void:
 				for card_viz in target_cards:
 					_shift_card(card_viz, deck.DrawOffset(card_viz.card, 1))
 
-func _create_card(_context, _deck, drawn_frag) -> void:
+func _create_card(_context: Context, _deck: DeckData, drawn_frag: FragmentData) -> void:
 	if _context == null or drawn_frag == null:
 		return
 	# 按项目契约：如果 fragment 是 Card 类型，_context.scope.Add(card) 可用

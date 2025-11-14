@@ -431,13 +431,13 @@ func token_description() -> String:
 func get_text(act: ActData) -> String:
 	if act == null:
 		return ""
-	return get_text_with_rules(act.text_rules, act.text)
+	return get_text_with_rules(act.text_rules, act.text.get_text())
 
 ## 获取 Act 结束文本
 func get_end_text(act: ActData) -> String:
 	if act == null:
 		return ""
-	return get_text_with_rules(act.end_text_rules, act.end_text)
+	return get_text_with_rules(act.end_text_rules, act.end_text.get_text())
 
 ## 根据规则获取文本
 func get_text_with_rules(text_rules: Array, default_text: String) -> String:

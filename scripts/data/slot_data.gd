@@ -3,8 +3,8 @@ extends Resource
 
 # Slot: 动词
 #region 属性定义
-@export var label : String
-@export_multiline var description : String
+@export var label : TextData
+@export var description : TextData
 ## 当Card插入Slot的时候，fragments会被添加到 Act window
 @export var fragments : Array[FragmentData]
 

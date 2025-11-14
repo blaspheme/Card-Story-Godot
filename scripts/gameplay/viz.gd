@@ -2,7 +2,7 @@ extends Node2D
 class_name Viz
 
 ## 可拖拽卡片的基类
-## 提供拖拽、高亮等通用功能，子类需实现抽象方法
+## 提供拖拽、高亮、点击等通用功能，子类需实现抽象方法
 
 # ===============================
 # 拖拽属性
@@ -11,6 +11,16 @@ var is_dragging := false
 var drag_offset := Vector2.ZERO
 var original_z_index: int = 0
 var dragging_plane: Node
+
+# ===============================
+# 点击检测属性
+# ===============================
+var _click_timer: Timer = null
+var _click_count: int = 0
+var _double_click_time: float = 0.3  # 双击时间间隔（秒）
+var _last_click_position: Vector2 = Vector2.ZERO
+var _click_threshold: float = 5.0  # 判定为同一位置的像素阈值
+
 # ===============================
 # 缓存引用（由子类在 _ready 中初始化）
 # ===============================
@@ -38,6 +48,18 @@ func _get_material() -> ShaderMaterial:
 ## 检查是否允许拖拽（子类可重写以添加额外条件）
 func _can_start_drag() -> bool:
 	return true
+
+## 单击事件回调（子类可重写）
+func _on_clicked() -> void:
+	pass
+
+## 双击事件回调（子类可重写）
+func _on_double_clicked() -> void:
+	pass
+
+func get_cell_size() -> Vector2i:
+	return Vector2i.ZERO
+
 #endregion
 
 #region 初始化方法（子类在 _ready 中调用）
@@ -58,8 +80,19 @@ func _init_drag_system() -> void:
 	# 记录原始层级
 	original_z_index = z_index
 	
+	# 初始化点击检测计时器
+	_init_click_timer()
+	
 	# 默认不处理输入（只在拖拽时启用）
 	set_process_input(false)
+
+## 初始化点击检测计时器
+func _init_click_timer() -> void:
+	_click_timer = Timer.new()
+	_click_timer.wait_time = _double_click_time
+	_click_timer.one_shot = true
+	_click_timer.timeout.connect(_on_click_timeout)
+	add_child(_click_timer)
 #endregion
 
 #region 动画方法
@@ -80,11 +113,7 @@ func rotate_to(deg: float, duration := 0.25) -> void:
 	_tween.tween_property(self, "rotation", deg_to_rad(deg), duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 #endregion
 
-
-# ===============================
-# 高亮效果
-# ===============================
-
+#region 高亮效果
 ## 高亮效果（修改背景颜色）
 func _highlight(active: bool) -> void:
 	_create_tween()
@@ -103,14 +132,50 @@ func _on_area_mouse_entered() -> void:
 func _on_area_mouse_exited() -> void:
 	_mat.set_shader_parameter("border_visibility", 0.0)
 	_highlight(false)
+#endregion
 
-# ===============================
-# 拖拽逻辑
-# ===============================
+#region 点击检测逻辑
+## 处理点击检测（区分单击和双击）
+func _handle_click_detection(click_position: Vector2) -> void:
+	# 检查是否在同一位置点击（容差范围内）
+	var is_same_position = _last_click_position.distance_to(click_position) < _click_threshold
+	
+	if _click_timer.is_stopped() or not is_same_position:
+		# 第一次点击或位置不同，重置计数
+		_click_count = 1
+		_last_click_position = click_position
+		_click_timer.start()
+	else:
+		# 在双击时间内再次点击同一位置
+		_click_count += 1
+		
+		if _click_count == 2:
+			# 双击触发
+			_click_timer.stop()
+			_click_count = 0
+			_on_double_clicked()
+		else:
+			# 重新开始计时
+			_click_timer.start()
 
+## 点击计时器超时（确认为单击）
+func _on_click_timeout() -> void:
+	if _click_count == 1:
+		_on_clicked()
+	_click_count = 0
+#endregion
+
+
+#region 拖拽逻辑
 ## 处理鼠标输入事件
 func _handle_mouse_input(event: InputEventMouseButton) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		# 记录点击位置用于点击检测
+		var click_position = event.position
+		
+		# 处理点击检测（单击/双击）
+		_handle_click_detection(click_position)
+		
 		if _can_start_drag():
 			# 按下鼠标左键，开始拖拽
 			_start_drag()
@@ -174,6 +239,7 @@ func _on_drag_started() -> void:
 ## 拖拽结束回调（子类可重写）
 func _on_drag_ended() -> void:
 	pass
+#endregion
 
 ## 输入处理（只在拖拽时启用，优先级高于其他卡片）
 func _input(event: InputEvent) -> void:

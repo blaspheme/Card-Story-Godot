@@ -1,7 +1,7 @@
 extends Node2D
 class_name TokenTimer
 
-## 游戏计时器组件（对应Unity的Timer类）
+## 游戏计时器组件
 ## 提供计时显示、进度条、事件回调和存档功能
 
 # ===============================
@@ -71,7 +71,7 @@ func _on_tick() -> void:
 		return
 	
 	# 更新已用时间（应用时间缩放）
-	_elapsed_time += _tick_timer.wait_time * Manager.GM.time_scale
+	_elapsed_time += _tick_timer.wait_time * Manager.GM.time_scale if Manager.GM != null else 1.0
 	
 	# 更新显示
 	_update_display(time_left)

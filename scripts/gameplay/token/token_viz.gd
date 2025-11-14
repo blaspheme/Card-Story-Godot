@@ -23,13 +23,14 @@ var result_count: int
 #region 生命周期方法
 func _ready() -> void:
 	load_token(token_data)
-	dragging_plane = Manager.GM.card_drag_plane
 	_init_drag_system()
 	token_timer.start_timer(5)
-	if act_window == null:
-		act_window = Manager.GM.create_window()
+	if Manager.GM:
+		dragging_plane = Manager.GM.card_drag_plane
+		if act_window == null:
+			act_window = Manager.GM.create_window()
 
-	Manager.GM.add_token(self)
+		Manager.GM.add_token(self)
 #endregion
 
 #region 实现父类抽象方法
@@ -71,12 +72,26 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 #endregion
 
 #region 保存和加载数据逻辑
+func save_state() -> TokenVizState:
+	var _save = TokenVizState.new()
+	_save.token = token_data
+	_save.position = position
+	
+	return _save
+
+func load_state(_save: TokenVizState) -> void:
+	load_token(_save.token)
+	global_position = _save.position
+	act_window = Manager.GM.create_window()
+	#act_window.load_state(_save.window_save, self)
+	
+
 func load_token(_token: TokenData) -> void:
 	if _token == null:
 		return
 
 	token_data = _token
-	title.text = str(_token.label)
+	title.text = _token.label.get_text()
 	front_image.texture = _token.image
 
 	name = "[TOKEN] " + _token.resource_path.get_file().get_basename()

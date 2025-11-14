@@ -103,7 +103,6 @@ func _on_drag_started() -> void:
 	
 	# 如果不是整堆拖拽模式且堆中有卡片，弹出一张卡进行拖拽
 	if not stack_counter.stack_drag and stack_counter.get_count() > 0:
-		print("弹出卡片进行拖拽")
 		var popped_card := stack_counter.pop()
 		if popped_card != null:
 			# 停止当前卡的拖拽
@@ -114,17 +113,12 @@ func _on_drag_started() -> void:
 			
 			# 让弹出的卡开始拖拽
 			popped_card.start_drag_directly()
-			var popped_label = popped_card.card_data.label.get_text() if (popped_card.card_data and popped_card.card_data.label) else "未命名"
-			print("弹出的卡片开始拖拽: %s" % popped_label)
-			return
 	
-	# 否则继续当前卡或整堆的拖拽
-	if stack_counter.stack_drag:
-		var label_text = card_data.label.get_text() if card_data and card_data.label else "未命名"
-		print("开始整堆拖拽: ", label_text)
-	else:
-		var label_text = card_data.label.get_text() if card_data and card_data.label else "未命名"
-		print("开始单卡拖拽: ", label_text)
+	if Manager.GM:
+		for _token_viz in Manager.GM.tokens:
+			var _slot_viz = _token_viz.act_window.accepts_card(self)
+			
+
 
 ## 拖拽结束时检测放置目标
 func _on_drag_ended() -> void:
@@ -165,6 +159,12 @@ func _check_drop_targets() -> void:
 		else:
 			print("无法堆叠到目标卡片")
 	# 如果没有找到目标卡片，卡片保持在当前拖拽结束的位置（自由放置）
+
+func _on_clicked() -> void:
+	print("单击")
+
+func _on_double_clicked() -> void:
+	print("双击")
 
 #endregion
 
@@ -406,7 +406,7 @@ func transform_card(new_card: CardData) -> void:
 		return
 	
 	# 检查是否是 mutator 类型
-	if new_card.has("is_mutator") and new_card.is_mutator:
+	if new_card.is_mutator:
 		# Mutator 模式：在标题后添加修饰符
 		var index = title_label.text.find("\n[")
 		if index != -1:

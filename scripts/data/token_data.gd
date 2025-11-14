@@ -2,7 +2,7 @@ class_name TokenData
 extends Resource
 
 #region 属性定义
-@export var label : String
+@export var label : TextData
 @export var image : Texture2D
 ## 没有设置 image 时候的颜色
 @export var color : Color = Color.WHITE

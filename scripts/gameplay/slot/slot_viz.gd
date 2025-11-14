@@ -58,7 +58,7 @@ var slotted_card: CardViz:
 # 生命周期方法
 # ===============================
 func _ready() -> void:
-	title_label.text = slot_data.label
+	title_label.text = slot_data.label.get_text()
 	
 	# 获取父 ActWindow（如果存在）
 	_act_window = _find_act_window()

@@ -1,8 +1,9 @@
 class_name DeckData
 extends Resource
 
-@export var label: String
-@export_multiline var text: String
+#region 属性定义
+@export var label: TextData
+@export var text: TextData
 
 @export_category("Fragments")
 ## 牌堆的内容片段（Fragment 资源列表）
@@ -25,3 +26,9 @@ extends Resource
 @export var infinite: bool = false
 ## 每次抽牌是否随机选择（与 shuffle/replenish 结合使用）
 @export var random: bool = false
+#endregion
+
+#region 公开方法
+#TODO 等待 DeckManager
+
+#endregion

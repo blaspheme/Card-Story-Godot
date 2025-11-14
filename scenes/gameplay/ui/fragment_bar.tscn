@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3 uid="uid://chdgknuuxx1n"]
+
+[ext_resource type="Script" uid="uid://bmh8sv3a4yho0" path="res://scripts/ui/fragment_bar.gd" id="1_j03aj"]
+[ext_resource type="Resource" uid="uid://dvadgkw12ffxe" path="res://resources/sos/zzzAllowed.tres" id="2_qv34p"]
+[ext_resource type="Resource" uid="uid://ckbkf7iokad0m" path="res://resources/sos/zzzForbidden.tres" id="3_ex6nl"]
+[ext_resource type="Resource" uid="uid://tori5nooxhiu" path="res://resources/sos/zzzDrawn.tres" id="4_4jf4c"]
+
+[node name="FragmentBar" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 500.0
+offset_bottom = 100.0
+script = ExtResource("1_j03aj")
+allowed = ExtResource("2_qv34p")
+forbidden = ExtResource("3_ex6nl")
+drawn = ExtResource("4_4jf4c")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0

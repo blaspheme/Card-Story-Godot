@@ -74,7 +74,7 @@ func attempt(context: Context) -> bool:
 
 #region 静态方法
 
-static func compare(req_op: GameEnums.ReqOp, constant: int, left: int, right: int) -> bool:
+static func compare(req_op: GameEnums.ReqOp, _constant: int, left: int, right: int) -> bool:
 	var rng = RandomNumberGenerator.new()
 	rng.randomize()
 
@@ -96,7 +96,7 @@ static func compare(req_op: GameEnums.ReqOp, constant: int, left: int, right: in
 				return false
 			return left % right == 0
 		GameEnums.ReqOp.RandomChallenge:
-			return constant * left > rng.randi_range(0, 99)
+			return _constant * left > rng.randi_range(0, 99)
 		GameEnums.ReqOp.RandomClash:
 			var div = float(left + right)
 			if div > 0.0:
