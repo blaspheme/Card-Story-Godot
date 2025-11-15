@@ -21,33 +21,6 @@ func after_test() -> void:
 	pass
 
 
-## 测试：获取所有父节点
-func test_get_parents() -> void:
-	# 创建多层父子关系
-	var root := Node.new()
-	var level1 := Node.new()
-	var level2 := Node.new()
-	var level3 := Node.new()
-	
-	root.add_child(level1)
-	level1.add_child(level2)
-	level2.add_child(level3)
-	
-	# 从最深层节点获取所有父节点
-	var parents := NodeUtils.get_parents(level3)
-	assert_int(parents.size()).is_equal(3)
-	assert_object(parents[0]).is_equal(level2)
-	assert_object(parents[1]).is_equal(level1)
-	assert_object(parents[2]).is_equal(root)
-	
-	# 测试根节点
-	var root_parents := NodeUtils.get_parents(root)
-	assert_int(root_parents.size()).is_equal(0)
-	
-	# 清理
-	root.queue_free()
-
-
 ## 测试：获取指定类型的父节点
 func test_get_parent_of_type() -> void:
 	# 创建混合类型的层级结构

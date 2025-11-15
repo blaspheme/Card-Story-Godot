@@ -235,7 +235,7 @@ func _on_click_timeout() -> void:
 #endregion
 
 
-#region 拖拽逻辑
+#region 鼠标事件
 ## 处理鼠标输入事件
 func _handle_mouse_input(event: InputEventMouseButton) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

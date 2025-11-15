@@ -256,7 +256,7 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
-			# 开始拖拽处理
+			# 开始鼠标输入
 			_handle_mouse_input(mouse_event)
 
 #endregion
