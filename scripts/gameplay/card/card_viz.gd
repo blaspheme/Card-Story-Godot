@@ -504,8 +504,7 @@ func parent_to(trans: Node, should_hide: bool = false) -> void:
 	
 	interactive = false
 	free = false
-	
-	NodeUtils.parent(self, trans)
+	reparent(trans)
 
 ## 抓取卡片并移动到目标位置
 func grab(target_pos: Vector2, on_start: Callable = Callable(), on_complete: Callable = Callable()) -> bool:
