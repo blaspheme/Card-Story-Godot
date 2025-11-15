@@ -10,8 +10,9 @@ var _bounds: Rect2
 ## 边界框是否已计算
 var _bounds_calculated := false
 
-## 拖拽属性
-var is_dragging := false
+## 状态属性
+var is_dragging := false  # 是否正在拖拽
+var _was_stacked := false  # 是否已被堆叠（用于阻止 Table 检测）
 var drag_offset := Vector2.ZERO
 var original_z_index: int = 0
 var dragging_plane: Node
@@ -268,6 +269,7 @@ func start_drag_directly() -> void:
 ## 开始拖拽
 func _start_drag() -> void:
 	is_dragging = true
+	_was_stacked = false  # 重置堆叠标志
 	# 使用全局鼠标位置和全局卡片位置计算偏移，避免父节点变化导致的坐标系问题
 	drag_offset = get_global_mouse_position() - global_position
 	if _tween:
@@ -288,8 +290,7 @@ func _start_drag() -> void:
 ## 结束拖拽
 func _end_drag() -> void:
 	is_dragging = false
-	# 松开后平滑吸附
-	move_to(position.round())
+	
 	# 恢复原始层级
 	z_index = original_z_index
 	# 重新启用 Area2D 输入
@@ -297,8 +298,21 @@ func _end_drag() -> void:
 	# 停用输入处理
 	set_process_input(false)
 	
-	# 触发拖拽结束事件（子类可监听）
+	# 触发拖拽结束事件（子类可监听）- 优先检测卡牌堆叠
 	_on_drag_ended()
+	
+	# 如果子类已经处理了放置（如堆叠到其他卡片），则不再检测 Table
+	if _was_stacked:
+		return
+	
+	# 检测是否放置在 Table 上
+	var table := _find_table_under_mouse()
+	if table:
+		# 找到 Table，调用其 on_card_dock 方法
+		table.on_card_dock(self)
+	else:
+		# 没有 Table，松开后平滑吸附到当前位置
+		move_to(position.round())
 
 ## 拖拽开始回调（子类可重写）
 func _on_drag_started() -> void:
@@ -307,6 +321,40 @@ func _on_drag_started() -> void:
 ## 拖拽结束回调（子类可重写）
 func _on_drag_ended() -> void:
 	pass
+#endregion
+
+#region Table 检测逻辑
+## 查找鼠标下方的 Table
+func _find_table_under_mouse() -> Table:
+	# 方法1：直接查找父节点链中的 Table
+	var current := get_parent()
+	while current:
+		if current is Table:
+			return current as Table
+		current = current.get_parent()
+	
+	# 方法2：使用射线检测鼠标位置下的节点
+	var mouse_pos := get_global_mouse_position()
+	var space_state := get_world_2d().direct_space_state
+	var query := PhysicsPointQueryParameters2D.new()
+	query.position = mouse_pos
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	
+	var results := space_state.intersect_point(query, 32)
+	
+	# 从结果中查找 Table 节点
+	for result in results:
+		var collider = result.get("collider")
+		if collider:
+			# 向上遍历父节点查找 Table
+			current = collider as Node
+			while current:
+				if current is Table:
+					return current as Table
+				current = current.get_parent()
+	
+	return null
 #endregion
 
 ## 输入处理（只在拖拽时启用，优先级高于其他卡片）

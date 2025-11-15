@@ -51,6 +51,10 @@ func _ready() -> void:
 			frag_tree = frag_trees[0] as FragTree
 	_update_grid_corner()
 	queue_redraw()
+	
+	# 添加 CollisionShape2D 使 Table 可以被物理检测
+	if not Engine.is_editor_hint():
+		_setup_collision_area()
 
 func _draw() -> void:
 	if not show_grid:
@@ -246,4 +250,24 @@ func grow(i: int) -> void:
 	
 	# 触发重绘
 	queue_redraw()
+
+## 设置碰撞区域（使 Table 可以被射线检测到）
+func _setup_collision_area() -> void:
+	# 查找或创建 Area2D
+	var area := get_node_or_null("TableArea") as Area2D
+	if not area:
+		area = Area2D.new()
+		area.name = "TableArea"
+		area.collision_layer = 0  # 不参与碰撞
+		area.collision_mask = 0   # 不检测碰撞
+		area.input_pickable = true  # 可以被输入检测
+		add_child(area)
+	
+	# 创建覆盖整个 Table 的矩形碰撞形状
+	var collision_shape := CollisionShape2D.new()
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.size = Vector2(plane_width, plane_height)
+	collision_shape.shape = rect_shape
+	collision_shape.position = grid_corner + Vector2(plane_width / 2, plane_height / 2)
+	area.add_child(collision_shape)
 #endregion

@@ -77,26 +77,3 @@ static func delete_node_safe(node: Node) -> void:
 		return
 	if not node.is_queued_for_deletion():
 		node.queue_free()
-
-## 将当前节点重新设置父节点
-## @param _current: 要操作的节点
-## @param new_parent: 新父节点
-static func parent(_current: Node ,new_parent: Node) -> void:
-	var old_parent := _current.get_parent()
-	if old_parent == new_parent:
-		return
-
-	# 从旧父级移除并添加到新父级
-	if old_parent:
-		old_parent.remove_child(_current)
-	if new_parent:
-		new_parent.add_child(_current)
-
-	var old_frag = NodeUtils.get_parent_of_type(old_parent, FragTree) as FragTree
-	if old_frag:
-		old_frag.on_change()
-
-	var new_frag := NodeUtils.get_parent_of_type(new_parent, FragTree) as FragTree
-	if new_frag:
-		new_frag.on_change()
-		new_frag.on_add_card(_current)

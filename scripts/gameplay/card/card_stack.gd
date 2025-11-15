@@ -27,6 +27,8 @@ const MAX_COUNT : int = 98
 # ===============================
 ## 更新UI展示
 func update_ui() -> void:
+	var parent_label = _parent_card.card_data.label.get_text() if _parent_card and _parent_card.card_data and _parent_card.card_data.label else "未命名"
+	print("[CardStack.update_ui] %s: _count=%d, 显示=%d, visible=%s" % [parent_label, _count, _count + 1, _count > 0])
 	count_label.text = str(_count + 1)
 	if _count > 0:
 		self.visible = true
@@ -43,9 +45,8 @@ func push(card_viz: CardViz) -> bool:
 		print("无法堆叠：卡片类型不同")
 		return false
 	
-	# 重父到当前堆节点
-	card_viz.get_parent().remove_child(card_viz)
-	add_child(card_viz)
+	# 重父到当前堆节点（使用 reparent() 方法）
+	card_viz.reparent(self)
 	# 放到本地原点并隐藏（表示被堆起来）
 	card_viz.position = Vector2.ZERO
 	if card_viz.has_method("set_process") :
@@ -57,7 +58,11 @@ func push(card_viz: CardViz) -> bool:
 	# 保持衰变计时器运行（堆叠中的卡牌仍然可以独立衰变）
 	# 衰变计时器会继续运行，当衰变完成时会自动弹出
 	# 更新计数
+	var old_count = _count
 	_count += 1
+	var parent_label = _parent_card.card_data.label.get_text() if _parent_card and _parent_card.card_data and _parent_card.card_data.label else "未命名"
+	var card_label = card_viz.card_data.label.get_text() if card_viz.card_data and card_viz.card_data.label else "未命名"
+	print("[CardStack.push] %s: _count %d -> %d (push %s)" % [parent_label, old_count, _count, card_label])
 	# 运行时记录所属堆栈的父卡引用（CardViz 的字段 stack）
 	card_viz.stack = _parent_card
 	update_ui()
@@ -78,12 +83,16 @@ func pop() -> CardViz:
 	
 	# 从堆栈移除并把父级设为场景中的原位（此处将其父设为父卡的父节点，通常是 Table 节点）
 	var target_parent := _parent_card.get_parent()
-	NodeUtils.parent(top_card, target_parent)
-
-	top_card.global_position = _parent_card.global_position
+	var target_pos := _parent_card.global_position
+	top_card.reparent(target_parent)
+	top_card.global_position = target_pos
 	
 	# 更新计数与堆引用
+	var old_count = _count
 	_count -= 1
+	var parent_label = _parent_card.card_data.label.get_text() if _parent_card and _parent_card.card_data and _parent_card.card_data.label else "未命名"
+	var card_label = top_card.card_data.label.get_text() if top_card.card_data and top_card.card_data.label else "未命名"
+	print("[CardStack.pop] %s: _count %d -> %d (pop %s)" % [parent_label, old_count, _count, card_label])
 	top_card.stack = null
 	update_ui()
 	return top_card
@@ -111,7 +120,16 @@ func _can_stack_with(card_viz: CardViz) -> bool:
 
 ## 合并另一个 CardStack 到当前堆（只能合并相同类型的卡）
 func merge(other: CardStack) -> bool:
-	if _count + other._count >= MAX_COUNT:
+	# 不能合并自己到自己
+	if other == self:
+		print("无法合并：不能合并自己到自己")
+		return false
+	
+	# 合并逻辑：将 other 的所有卡片（包括父卡）逐个 push 到当前堆
+	# 不直接操作节点关系，而是通过 pop 和 push 来实现
+	
+	if _count + other._count + 1 > MAX_COUNT:  # +1 是 other 的父卡
+		print("无法合并：超过最大数量限制")
 		return false
 	
 	# 检查是否可以与另一个堆的父卡合并
@@ -119,16 +137,28 @@ func merge(other: CardStack) -> bool:
 		print("无法合并：卡片类型不同")
 		return false
 	
-	# 逐个弹出并压入
-	while true:
+	print("开始合并堆叠：当前 %d 张 + 来源 %d 张" % [_count + 1, other._count + 1])
+	
+	# 收集所有要转移的卡片（包括堆叠中的和父卡）
+	var cards_to_transfer: Array[CardViz] = []
+	
+	# 先弹出所有堆叠中的卡片
+	while other._count > 0:
 		var card := other.pop()
-		if card == null:
-			break
-		push(card)
-	# 将其他堆的 parent 也入栈（如果合适）
-	if other._parent_card != null:
-		push(other._parent_card)
-	update_ui()
+		if card:
+			cards_to_transfer.append(card)
+	
+	# 添加 other 的父卡
+	if other._parent_card and other._parent_card != _parent_card:
+		cards_to_transfer.append(other._parent_card)
+	
+	# 将所有卡片 push 到当前堆叠
+	for card in cards_to_transfer:
+		if not push(card):
+			print("合并失败：无法 push 卡片 %s" % card.name)
+			return false
+	
+	print("合并完成：总共 %d 张卡片" % (_count + 1))
 	return true
 
 
@@ -176,19 +206,19 @@ func eject_mismatched_cards() -> Array[CardViz]:
 			cards_to_remove.append(card)
 			print("发现不匹配的卡牌: %s (父卡: %s)" % [card.card_data.label, _parent_card.card_data.label])
 	
-	# 弹出不匹配的卡牌
+	# 弹出不匹配的卡版
 	for card in cards_to_remove:
-		# 从堆叠中移除
-		remove_child(card)
+		# 设置为可见
 		card.visible = true
 		if card.has_method("set_process"):
 			card.set_process(true)
 			card.set_physics_process(true)
 		
-		# 移动到父卡的父节点
+		# 移动到父卡的父节点（使用 reparent() 方法）
 		var target_parent = _parent_card.get_parent()
-		target_parent.add_child(card)
-		card.global_position = _parent_card.global_position + Vector2(randf_range(-50, 50), randf_range(-50, 50))
+		var target_pos = _parent_card.global_position + Vector2(randf_range(-50, 50), randf_range(-50, 50))
+		card.reparent(target_parent)
+		card.global_position = target_pos
 		
 		# 清除堆叠引用
 		card.stack = null
@@ -209,19 +239,19 @@ func handle_stacked_card_decay(decaying_card: CardViz) -> bool:
 	if not stacked_cards.has(decaying_card):
 		return false
 	
-	print("CardStack: 处理堆叠中卡牌的衰变: %s" % decaying_card.card_data.label)
+	print("CardStack: 处理堆叠中卡版的衰变: %s" % decaying_card.card_data.label)
 	
-	# 弹出这张卡牌
-	remove_child(decaying_card)
+	# 设置为可见
 	decaying_card.visible = true
 	if decaying_card.has_method("set_process"):
 		decaying_card.set_process(true)
 		decaying_card.set_physics_process(true)
 	
-	# 移动到父卡的父节点
+	# 移动到父卡的父节点（使用 reparent() 方法）
 	var target_parent = _parent_card.get_parent()
-	target_parent.add_child(decaying_card)
-	decaying_card.global_position = _parent_card.global_position + Vector2(randf_range(-30, 30), randf_range(-30, 30))
+	var target_pos = _parent_card.global_position + Vector2(randf_range(-30, 30), randf_range(-30, 30))
+	decaying_card.reparent(target_parent)
+	decaying_card.global_position = target_pos
 	
 	# 清除堆叠引用
 	decaying_card.stack = null
@@ -244,14 +274,20 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 			if stack_drag and _parent_card != null:
+				var parent_label = _parent_card.card_data.label.get_text() if _parent_card.card_data and _parent_card.card_data.label else "未命名"
+				print("[StackCounter] 开始整堆拖拽 - 父卡: %s, stack_drag: %s, count: %d" % [parent_label, stack_drag, get_count()])
 				# 开始整堆拖拽
 				_parent_card.start_drag_directly()
 				get_viewport().set_input_as_handled()
 
 ## 鼠标进入堆叠区域（标记为堆叠拖拽模式）
 func _on_area_2d_mouse_entered() -> void:
+	var parent_label = _parent_card.card_data.label.get_text() if _parent_card and _parent_card.card_data and _parent_card.card_data.label else "未命名"
+	print("[StackCounter] 鼠标进入 - 父卡: %s, 设置 stack_drag = true" % parent_label)
 	stack_drag = true
 
-## 鼠标离开堆叠区域（取消堆叠拖拽模式）
+## 鼠标离开堆叠区域
+## 注意：不在这里重置 stack_drag，因为拖拽开始时鼠标会立即离开区域
+## stack_drag 会在拖拽结束后的 _on_drag_ended 中重置
 func _on_area_2d_mouse_exited() -> void:
-	stack_drag = false
+	pass

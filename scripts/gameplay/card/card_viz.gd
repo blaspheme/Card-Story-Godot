@@ -115,21 +115,38 @@ func _on_drag_started() -> void:
 			
 			# 让弹出的卡开始拖拽
 			popped_card.start_drag_directly()
+			return
 	
+	# 高亮所有可接受此卡片的slot
 	if Manager.GM:
 		for _token_viz in Manager.GM.tokens:
 			var _slot_viz = _token_viz.act_window.accepts_card(self)
+			if _slot_viz != null and (_slot_viz.slotted_card == null or not _slot_viz.card_lock):
+				_token_viz.set_highlight(true)
+		
+		# 高亮打开的窗口中的slot
+		if Manager.GM.open_window != null:
+			Manager.GM.open_window.highlight_slots(self)
 
 ## 拖拽结束时检测放置目标
 func _on_drag_ended() -> void:
 	var label_text = card_data.label.get_text() if card_data and card_data.label else "未命名"
 	print("结束拖拽卡片: ", label_text)
 	
+	# 取消高亮
+	unhighlight_targets()
+	
 	# 检测是否放置在其他卡片上
 	_check_drop_targets()
+	
+	# 重置整堆拖拽标记（必须在 _check_drop_targets 之后，因为需要用到这个标记）
+	print("[CardViz] 重置 stack_drag = false")
+	stack_counter.stack_drag = false
 
 ## 检测放置目标
 func _check_drop_targets() -> void:
+	print("_check_drop_targets - stack_drag 状态: %s, count: %d" % [stack_counter.stack_drag, stack_counter.get_count()])
+	
 	var space_state := get_world_2d().direct_space_state
 	var query := PhysicsPointQueryParameters2D.new()
 	query.position = global_position
@@ -153,12 +170,35 @@ func _check_drop_targets() -> void:
 	
 	# 尝试堆叠到卡片
 	if target_card:
-		if target_card.accept_dropped_card(self):
-			var target_label = target_card.card_data.label.get_text() if target_card.card_data and target_card.card_data.label else "未命名"
-			print("成功堆叠到卡片: ", target_label)
+		# 检查目标卡是否是自己（避免自己堆叠到自己）
+		if target_card == self:
+			print("[CardViz] 目标卡是自己，跳过堆叠")
+			return
+		
+		# 如果是整堆拖拽模式，尝试合并堆叠
+		if stack_counter.stack_drag:
+			print("[CardViz] 整堆拖拽模式，尝试 merge")
+			# 把目标卡合并到当前拖拽的卡（而不是反过来，避免循环依赖）
+			if stack_counter.merge(target_card.stack_counter):
+				var target_label = target_card.card_data.label.get_text() if target_card.card_data and target_card.card_data.label else "未命名"
+				print("成功合并堆叠到卡片: ", target_label)
+				# 设置堆叠标志，阻止后续 Table 检测
+				_was_stacked = true
+			else:
+				print("无法合并堆叠到目标卡片")
+		# 否则是单卡拖拽，尝试push
 		else:
-			print("无法堆叠到目标卡片")
+			print("[CardViz] 单卡拖拽模式，尝试 push")
+			if target_card.accept_dropped_card(self):
+				var target_label = target_card.card_data.label.get_text() if target_card.card_data and target_card.card_data.label else "未命名"
+				print("成功堆叠到卡片: ", target_label)
+				# 设置堆叠标志，阻止后续 Table 检测
+				_was_stacked = true
+			else:
+				print("无法堆叠到目标卡片")
 	# 如果没有找到目标卡片，卡片保持在当前拖拽结束的位置（自由放置）
+	else:
+		print("[CardViz] 未检测到目标卡片，自由放置")
 
 func _on_clicked() -> void:
 	print("单击")

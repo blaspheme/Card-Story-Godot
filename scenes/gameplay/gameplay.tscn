@@ -36,9 +36,10 @@ script = ExtResource("6_bhb63")
 script = ExtResource("2_2p25t")
 
 [node name="Table" type="Node2D" parent="Root"]
+position = Vector2(1015.5729, 571.21655)
 script = ExtResource("7_lb4ud")
-cell_size = Vector2(150, 100)
-cell_count = Vector2i(20, 20)
+cell_size = Vector2(200, 200)
+cell_count = Vector2i(10, 10)
 grid_color = Color(0.8008873, 0.25979748, 0.58399004, 0.3019608)
 show_cell_coords = true
 coord_color = Color(0.57617325, 0.8603663, 0.86103433, 0.6)
@@ -65,6 +66,7 @@ position = Vector2(551, 719)
 [node name="CardDragPlane" type="Node" parent="Root"]
 
 [node name="UI" type="Control" parent="."]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

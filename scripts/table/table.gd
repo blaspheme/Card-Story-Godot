@@ -108,9 +108,15 @@ func place_multiple(viz: Viz, list: Array[Viz]) -> void:
 		place(lviz, locations[i], Manager.GM.normal_speed)
 		i += 1
 
-## 在桌面上放置单个对象
+## 将 Viz 放置在指定位置 t，并以给定速度移动过去
+## @param viz: 要放置的 Viz 对象
+## @param t: 目标位置（位置类型根据 Table 子类而定）
+## @param move_speed: 移动速度（像素/秒）
 func place(viz: Viz, t: Variant, move_speed: float) -> void:
-	viz.reparent(self)
+	if frag_tree:
+		viz.reparent(frag_tree)
+	else:
+		viz.reparent(self)
 	_do_move(viz, t, move_speed)
 	last_locations[viz] = t
 
@@ -153,7 +159,9 @@ func get_last_location(viz: Viz) -> Variant:
 #region 受保护方法（供子类使用）
 ## 最终确定对象在桌面上的位置
 func _put_on(viz: Viz) -> void:
-	viz.reparent(self)
+	# 确保卡片在 frag_tree 下
+	if frag_tree and viz.get_parent() != frag_tree:
+		viz.reparent(frag_tree)
 	var local_pos := viz.position
 	viz.position = Vector2(local_pos.x, local_pos.y)
 
