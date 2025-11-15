@@ -4,30 +4,31 @@ class_name Viz
 ## 可拖拽卡片的基类
 ## 提供拖拽、高亮、点击等通用功能，子类需实现抽象方法
 
-# ===============================
-# 拖拽属性
-# ===============================
+#region 属性
+## 缓存的边界框（Rect2）
+var _bounds: Rect2
+## 边界框是否已计算
+var _bounds_calculated := false
+
+## 拖拽属性
 var is_dragging := false
 var drag_offset := Vector2.ZERO
 var original_z_index: int = 0
 var dragging_plane: Node
 
-# ===============================
-# 点击检测属性
-# ===============================
+## 点击检测属性
 var _click_timer: Timer = null
 var _click_count: int = 0
 var _double_click_time: float = 0.3  # 双击时间间隔（秒）
 var _last_click_position: Vector2 = Vector2.ZERO
 var _click_threshold: float = 5.0  # 判定为同一位置的像素阈值
 
-# ===============================
-# 缓存引用（由子类在 _ready 中初始化）
-# ===============================
+## 缓存引用（由子类在 _ready 中初始化）
 var _area: Area2D
 var _background: Node2D
 var _mat: ShaderMaterial
 var _tween: Tween
+#endregion
 
 #region 抽象方法
 ## 获取 Area2D 节点（用于输入检测）
@@ -60,6 +61,73 @@ func _on_double_clicked() -> void:
 func get_cell_size() -> Vector2i:
 	return Vector2i.ZERO
 
+#endregion
+
+#region 虚拟方法
+## 返回对象的边界框（用于连续坐标系桌面）
+## 基于子节点的 Sprite2D、TextureRect 等可视化组件计算
+func get_bounds() -> Rect2:
+	if not _bounds_calculated:
+		_bounds = _calculate_bounds(self)
+		_bounds_calculated = true
+	
+	return _bounds
+
+## 强制重新计算边界框
+func recalculate_bounds() -> void:
+	_bounds_calculated = false
+	_bounds = Rect2()
+
+static func _calculate_bounds(node: Node) -> Rect2:
+	var bounds := Rect2()
+	var has_bounds := false
+	
+	# 尝试从当前节点获取边界框
+	if node is Sprite2D:
+		var sprite := node as Sprite2D
+		if sprite.texture:
+			var size := sprite.texture.get_size() * sprite.scale
+			var pos := sprite.global_position - size / 2
+			bounds = Rect2(pos, size)
+			has_bounds = true
+	
+	elif node is TextureRect:
+		var tex_rect := node as TextureRect
+		bounds = Rect2(tex_rect.global_position, tex_rect.size)
+		has_bounds = true
+	
+	elif node is CollisionShape2D:
+		var collision := node as CollisionShape2D
+		if collision.shape is RectangleShape2D:
+			var rect_shape := collision.shape as RectangleShape2D
+			var size := rect_shape.size
+			var pos := collision.global_position - size / 2
+			bounds = Rect2(pos, size)
+			has_bounds = true
+		elif collision.shape is CircleShape2D:
+			var circle_shape := collision.shape as CircleShape2D
+			var radius := circle_shape.radius
+			var size := Vector2(radius * 2, radius * 2)
+			var pos := collision.global_position - size / 2
+			bounds = Rect2(pos, size)
+			has_bounds = true
+	
+	# 如果当前节点没有边界框，从全局位置创建零大小边界框
+	if not has_bounds and node is Node2D:
+		bounds = Rect2((node as Node2D).global_position, Vector2.ZERO)
+		has_bounds = true
+	
+	# 递归合并所有子节点的边界框
+	for child in node.get_children():
+		var child_bounds := _calculate_bounds(child)
+		if child_bounds.size != Vector2.ZERO:
+			if has_bounds:
+				bounds = bounds.merge(child_bounds)
+			else:
+				bounds = child_bounds
+				has_bounds = true
+	
+	return bounds
 #endregion
 
 #region 初始化方法（子类在 _ready 中调用）

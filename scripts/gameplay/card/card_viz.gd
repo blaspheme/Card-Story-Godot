@@ -6,6 +6,8 @@ class_name CardViz
 #region 导出变量
 ## 卡牌的数据资源
 @export var card_data: CardData
+## Table
+@export var cell_count: Vector2i
 #endregion
 
 #region 变量
@@ -117,8 +119,6 @@ func _on_drag_started() -> void:
 	if Manager.GM:
 		for _token_viz in Manager.GM.tokens:
 			var _slot_viz = _token_viz.act_window.accepts_card(self)
-			
-
 
 ## 拖拽结束时检测放置目标
 func _on_drag_ended() -> void:
@@ -165,6 +165,9 @@ func _on_clicked() -> void:
 
 func _on_double_clicked() -> void:
 	print("双击")
+
+func get_cell_size() -> Vector2i:
+	return cell_count
 
 #endregion
 
