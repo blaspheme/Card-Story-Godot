@@ -52,7 +52,6 @@ var decay: CardDency:
 #endregion
 
 #region 生命周期方法
-
 func _ready() -> void:
 	if card_data != null:
 		load_card(card_data)
@@ -73,6 +72,9 @@ func _ready() -> void:
 	
 	# 检查是否需要开始衰败
 	_check_and_start_decay()
+
+	# 尝试将卡片放置到最近的 ArrayTable
+	_place_on_nearest_array_table()
 
 ## 信号
 func _on_create_card(_card_viz: CardViz) -> void:

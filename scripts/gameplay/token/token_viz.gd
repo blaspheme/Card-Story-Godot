@@ -31,6 +31,9 @@ func _ready() -> void:
 			act_window = Manager.GM.create_window()
 
 		Manager.GM.add_token(self)
+
+	# 尝试将卡片放置到最近的 ArrayTable
+	_place_on_nearest_array_table()
 #endregion
 
 #region 实现父类抽象方法

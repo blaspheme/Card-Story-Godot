@@ -376,3 +376,38 @@ func _input(event: InputEvent) -> void:
 			_end_drag()
 			# 标记事件已处理
 			get_viewport().set_input_as_handled()
+
+## 在 ready 时尝试放置到最近的 ArrayTable 表格中
+func _place_on_nearest_array_table() -> void:
+	## 场景完全加载 + 所有节点 ready 完成
+	await get_tree().process_frame
+	# 在场景树中查找所有 ArrayTable
+	var tables = NodeUtils.find_children_recursive(get_tree().root, ArrayTable, true)
+	if tables.size() == 0:
+		return
+
+	# 选择最近的 Table
+	var nearest = null
+	var best_dist = 1e30
+	for t in tables:
+		var d = t.global_position.distance_to(global_position)
+		if d < best_dist:
+			best_dist = d
+			nearest = t
+
+	if nearest == null:
+		return
+
+	# 计算本地格坐标并尝试放置
+	var local_p = global_position - nearest.global_position
+	var loc = nearest.from_local_position(local_p)
+
+	# 获取速度（优先使用 Manager.GM 提供的值）
+	var speed = Manager.GM.fast_speed
+
+	# 首先尝试在计算的位置附近找到空位并放置
+	if nearest.find_free_location(loc, self):
+		nearest.place(self, loc, speed)
+	else:
+		nearest.on_card_dock(self)
+			
