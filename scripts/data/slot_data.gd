@@ -11,7 +11,7 @@ extends Resource
 # ===============================
 # Spawn : Slot 在 Token 和 Act 上生成的规则
 # ===============================
-@export_category("Spawn")
+@export_group("Spawn")
 ## 这个 Slot 只会尝试在与该字段引用的 Token 资源相同的 Token 实例/类型上打开（即“只在指定类型的 Token 上尝试生成/打开此槽”）
 @export var token: TokenData
 ## 每个 window 只有一个此 Slot 的实例
@@ -21,7 +21,7 @@ extends Resource
 ## 尝试在所有正在运行的 act 上生成 slot
 @export var all_acts: bool = false
 
-@export_category("Spawn Tests")
+@export_group("Spawn Tests")
 ## 所有的 spawn_tests 必须通过，否则不生成当前 Slot
 @export var spawn_tests: Array[TestData]
 ## spawn_rule 必须通过，否则不生成当前 Slot
@@ -30,7 +30,7 @@ extends Resource
 # ===============================
 # Card 可插入 Slot 规则：1、相关 Fragment 数量限制；2、card_rule
 # ===============================
-@export_category("Accepted Fragments")
+@export_group("Accepted Fragments")
 ## Card 必须至少包含“required”列表中任一 Fragment，且该 Fragment 数量 >= 指定的 count，才能被该 Slot 接纳
 @export var required: Array[HeldFragmentData]
 ## Card 必须对 essential 列表中的每个 Fragment，至少拥有指定数量，才会被该 Slot 接纳
@@ -38,7 +38,7 @@ extends Resource
 ## Card 要被该 Slot 接纳，forbidden 列表中的每一项 Fragment 数量必须 < 指定的阈值
 @export var forbidden: Array[HeldFragmentData]
 
-@export_category("Card Rule")
+@export_group("Card Rule")
 ## 额外 Card 可插入 Slot 规则，不会展示在UI中
 @export var card_rule: RuleData
 

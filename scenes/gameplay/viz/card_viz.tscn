@@ -1,10 +1,13 @@
-[gd_scene load_steps=11 format=3 uid="uid://qq6c6dil3jcl"]
+[gd_scene load_steps=14 format=3 uid="uid://qq6c6dil3jcl"]
 
 [ext_resource type="Script" uid="uid://ct12jv14my50w" path="res://scripts/gameplay/card/card_viz.gd" id="1_fi7n1"]
 [ext_resource type="Resource" uid="uid://hsmcnfc340se" path="res://resources/data/card/flower.tres" id="2_iqxif"]
 [ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="3_02ip0"]
+[ext_resource type="Resource" uid="uid://i4llhu3perai" path="res://resources/behavior/highlight_card_behavior.tres" id="3_jhmj3"]
 [ext_resource type="Shader" uid="uid://d355bst4un70p" path="res://resources/shaders/ui/edge_gradient_border.gdshader" id="4_iqxif"]
+[ext_resource type="Resource" uid="uid://bkpoqj6ylfrvp" path="res://resources/behavior/drag_card_behavior.tres" id="4_nmxfg"]
 [ext_resource type="Texture2D" uid="uid://ck8b5vmcv5ai2" path="res://assets/sprite/card_border.svg" id="5_nmxfg"]
+[ext_resource type="Resource" uid="uid://ds0j8br5k0jsw" path="res://resources/behavior/drop_card_behavior.tres" id="5_tn6ot"]
 [ext_resource type="Texture2D" uid="uid://pgo1v2tn7yih" path="res://icon.svg" id="6_tn6ot"]
 [ext_resource type="Script" uid="uid://hd03dvuv8qae" path="res://scripts/gameplay/card/card_dency.gd" id="7_fi7n1"]
 [ext_resource type="PackedScene" uid="uid://bb2gokljyaa7w" path="res://scenes/gameplay/widgets/stack_counter.tscn" id="7_w6jym"]
@@ -23,6 +26,9 @@ shader_parameter/gradient_steps = 10.0
 [node name="CardViz" type="Node2D"]
 script = ExtResource("1_fi7n1")
 card_data = ExtResource("2_iqxif")
+highlight_behavior = ExtResource("3_jhmj3")
+drag_behavior = ExtResource("4_nmxfg")
+drop_behavior = ExtResource("5_tn6ot")
 
 [node name="Area2D" type="Area2D" parent="."]
 

@@ -75,6 +75,8 @@ func _ready() -> void:
 
 	# 尝试将卡片放置到最近的 ArrayTable
 	_place_on_nearest_array_table()
+	
+	super._ready()
 
 ## 信号
 func _on_create_card(_card_viz: CardViz) -> void:
@@ -96,10 +98,6 @@ func _get_background() -> Node2D:
 ## 获取材质
 func _get_material() -> ShaderMaterial:
 	return mat
-
-## 检查是否允许拖拽（重写以添加堆叠拖拽检查）
-func _can_start_drag() -> bool:
-	return free
 
 ## 拖拽开始时的处理
 func _on_drag_started() -> void:
@@ -136,7 +134,7 @@ func _on_drag_ended() -> void:
 	print("结束拖拽卡片: ", label_text)
 	
 	# 取消高亮
-	unhighlight_targets()
+	highlight_behavior.set_highlight(self, false)
 	
 	# 检测是否放置在其他卡片上
 	_check_drop_targets()
@@ -202,12 +200,6 @@ func _check_drop_targets() -> void:
 	else:
 		print("[CardViz] 未检测到目标卡片，自由放置")
 
-func _on_clicked() -> void:
-	print("单击")
-
-func _on_double_clicked() -> void:
-	print("双击")
-
 func get_cell_size() -> Vector2i:
 	return cell_count
 
@@ -259,7 +251,7 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 			# 开始鼠标输入
-			_handle_mouse_input(mouse_event)
+			handle_mouse_input(mouse_event)
 
 #endregion
 
@@ -427,21 +419,6 @@ func show_back() -> void:
 	if frag_tree:
 		frag_tree.on_change()
 
-## 设置高亮状态
-func set_highlight(enabled: bool) -> void:
-	if highlight_sprite:
-		highlight_sprite.visible = enabled
-
-## 取消所有目标高亮（Tokens 和 Slots）
-func unhighlight_targets() -> void:
-	# 取消所有 token 的高亮
-	for token in Manager.GM.tokens:
-		if token.has_method("set_highlight"):
-			token.set_highlight(false)
-	
-	# 取消打开窗口的 slot 高亮
-	if Manager.GM.open_window and Manager.GM.open_window.has_method("unhighlight_slots"):
-		Manager.GM.open_window.unhighlight_slots()
 #endregion
 
 

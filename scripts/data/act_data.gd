@@ -13,7 +13,7 @@ extends Resource
 # ===============================
 # Entry Tests: Token 切换到这个 Act 的判断条件
 # ===============================
-@export_category("Entry Tests")
+@export_group("Entry Tests")
 ## 所有 tests 必须通过才能进入该 Act ； Card tests 匹配到的卡会作为 On Complete 的 modifiers 的匹配集。
 @export var tests: Array[TestData]
 ## 所有的 and_rules 规则必须通过才能进入该 Act（不应用 modifiers，匹配卡不在规则间传递）
@@ -24,11 +24,11 @@ extends Resource
 # ===============================
 # Act 执行成功之后效果
 # ===============================
-@export_category("Fragments")
+@export_group("Fragments")
 ## 在完成 Act 时会把这些 fragments 添加到 Act 的 FragTree（或窗口）
 @export var fragments: Array[FragmentData]
 
-@export_category("On Complete")
+@export_group("On Complete")
 @export var act_modifiers: Array[ActModifier]
 @export var card_modifiers: Array[CardModifier]
 @export var table_modifiers: Array[TableModifier]
@@ -41,7 +41,7 @@ extends Resource
 # ===============================
 # 使用指定 Slots ，而不使用全局规则的 Slot
 # ===============================
-@export_category("Slots")
+@export_group("Slots")
 ## 仅下列 slots 在 Act 运行时会尝试打开（如果 ignore_global_slots 为 true，则不会尝试全局 slots）
 @export var ignore_global_slots: bool = false
 @export var slots: Array[SlotData]
@@ -49,7 +49,7 @@ extends Resource
 # ===============================
 # Act链：动态变化、运行结束之后的后续Act
 # ===============================
-@export_category("Alt / Next / Spawned Acts")
+@export_group("Alt / Next / Spawned Acts")
 @export var random_alt: bool = false
 ## 运行时的可选替代（选择替换当前 Act 的变体）
 @export var alt_acts: Array[ActLink]
@@ -62,14 +62,14 @@ extends Resource
 # ===============================
 # 生成时触发
 # ===============================
-@export_category("On Spawn")
+@export_group("On Spawn")
 ## 在此 Act 在新 Token 中生成时会运行的规则
 @export var on_spawn: RuleData
 
 # ===============================
 # Act 上的文本
 # ===============================
-@export_category("Texts")
+@export_group("Texts")
 @export var text: TextData
 @export var text_rules: Array[RuleData]
 @export var end_text: TextData

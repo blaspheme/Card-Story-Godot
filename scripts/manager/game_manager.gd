@@ -10,22 +10,24 @@ const resource_path = "res://resources/data/"
 #endregion
 
 #region 导出参数
-@export_category("Root")
+@export_group("Root")
 @export var root: FragTree
-@export_category("Planes")
+@export_group("Table")
+@export var table: ArrayTable
+@export_group("Planes")
 @export var window_plane: Node
 @export var card_drag_plane: Node
-@export_category("Card transform time")
+@export_group("Card transform time")
 @export var normal_speed: float = 0.7
 @export var fast_speed: float = 0.05
 @export var rotate_speed: float = 0.5
 @export var scale_speed: float = 0.5
-@export_category("Special fragments")
+@export_group("Special fragments")
 @export var this_aspect: AspectData
 @export var this_card: CardData
 @export var matched_card: CardData
 @export var memory_fragment: FragmentData
-@export_category("Time control")
+@export_group("Time control")
 @export var time_scale: float = 1.0
 @export var max_time: float
 @export var all_time: float

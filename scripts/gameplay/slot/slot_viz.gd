@@ -1,21 +1,9 @@
-extends Node2D
+extends Viz
 class_name SlotViz
 
 ## 卡牌槽位可视化组件，提供卡片放置、自动抓取、显示/隐藏等功能
 
-# ===============================
-# 信号定义
-# ===============================
-## 卡片插入槽位时发出
-signal card_slotted(card: CardViz)
-## 卡片从槽位移除时发出
-signal card_unslotted(card: CardViz)
-## 槽位被点击时发出
-signal slot_clicked(slot_viz: SlotViz)
-
-# ===============================
-# 导出属性
-# ===============================
+#region 导出属性
 ## 槽位数据资源
 @export var slot_data: SlotData
 
@@ -38,7 +26,7 @@ var first_slot: bool = false
 # 私有属性
 # ===============================
 var _slotted_card: CardViz = null
-var _act_window = null  # ActWindow 引用
+var _act_window: ActWindow = null  # ActWindow 引用
 var _grab_listener_id: int = -1  # EventBus 监听器 ID
 
 # ===============================
@@ -53,6 +41,17 @@ var is_open: bool:
 var slotted_card: CardViz:
 	get:
 		return _slotted_card
+#endregion
+
+#region 信号定义
+## 卡片插入槽位时发出
+signal card_slotted(card: CardViz)
+## 卡片从槽位移除时发出
+signal card_unslotted(card: CardViz)
+## 槽位被点击时发出
+signal slot_clicked(slot_viz: SlotViz)
+#endregion
+
 
 # ===============================
 # 生命周期方法
@@ -334,11 +333,7 @@ func _on_slot_clicked() -> void:
 	for card in cards:
 		if accepts_card(card):
 			matching_cards.append(card)
-	
-	# 通过 EventBus 或 GameManager 高亮卡片
-	if Manager.GM.has_method("highlight_cards"):
-		Manager.GM.highlight_cards(matching_cards)
-	
+
 	# 发送信号供 UI 监听（显示槽位信息面板等）
 	slot_clicked.emit(self)
 

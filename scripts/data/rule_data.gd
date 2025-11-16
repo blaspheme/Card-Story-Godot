@@ -10,16 +10,16 @@ extends Resource
 ## 任一 RuleData 通过
 @export var or_rules : Array[RuleData]
 
-@export_category("Modifiers")
+@export_group("Modifiers")
 @export var act_modifiers: Array[ActModifier]
 @export var card_modifiers: Array[CardModifier]
 @export var table_modifiers: Array[TableModifier]
 @export var path_modifiers: Array[PathModifier]
 @export var deck_modifiers: Array[DeckModifier]
-@export_category("Furthermore")
+@export_group("Furthermore")
 @export var furthermore: Array[RuleData]
 
-@export_category("Texts")
+@export_group("Texts")
 @export var text: TextData
 #endregion
 

@@ -19,9 +19,10 @@
 
 [node name="Manager" type="Node" parent="."]
 
-[node name="GameManager" type="Node" parent="Manager" node_paths=PackedStringArray("root", "window_plane", "card_drag_plane")]
+[node name="GameManager" type="Node" parent="Manager" node_paths=PackedStringArray("root", "table", "window_plane", "card_drag_plane")]
 script = ExtResource("1_gh441")
 root = NodePath("../../Root")
+table = NodePath("../../Root/Table")
 window_plane = NodePath("../../Root/WindowPlane")
 card_drag_plane = NodePath("../../Root/CardDragPlane")
 this_aspect = ExtResource("2_bhb63")

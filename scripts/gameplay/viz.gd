@@ -4,6 +4,19 @@ class_name Viz
 ## 可拖拽卡片的基类
 ## 提供拖拽、高亮、点击等通用功能，子类需实现抽象方法
 
+#region 行为以及其依赖的属性
+@export_group("策略")
+## 高亮行为
+@export var highlight_behavior: HighlightBehavior
+## Viz 高亮着色的材质
+var _mat: ShaderMaterial
+## 放置行为
+@export var drag_behavior: DragBehavior
+@export var drop_behavior: DropBehavior
+## 是否在进行UI操作，避免其他节点也响应输入
+var is_input_active = false
+#endregion
+
 #region 属性
 ## 缓存的边界框（Rect2）
 var _bounds: Rect2
@@ -27,8 +40,14 @@ var _click_threshold: float = 5.0  # 判定为同一位置的像素阈值
 ## 缓存引用（由子类在 _ready 中初始化）
 var _area: Area2D
 var _background: Node2D
-var _mat: ShaderMaterial
+
 var _tween: Tween
+#endregion
+
+#region 生命周期方法
+func _ready() -> void:
+	pass
+
 #endregion
 
 #region 抽象方法
@@ -46,18 +65,6 @@ func _get_background() -> Node2D:
 func _get_material() -> ShaderMaterial:
 	push_error("DragCardViz._get_material() 必须被子类重写")
 	return null
-
-## 检查是否允许拖拽（子类可重写以添加额外条件）
-func _can_start_drag() -> bool:
-	return true
-
-## 单击事件回调（子类可重写）
-func _on_clicked() -> void:
-	pass
-
-## 双击事件回调（子类可重写）
-func _on_double_clicked() -> void:
-	pass
 
 func get_cell_size() -> Vector2i:
 	return Vector2i.ZERO
@@ -182,28 +189,61 @@ func rotate_to(deg: float, duration := 0.25) -> void:
 	_tween.tween_property(self, "rotation", deg_to_rad(deg), duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 #endregion
 
-#region 高亮效果
-## 高亮效果（修改背景颜色）
-func _highlight(active: bool) -> void:
-	_create_tween()
-	if active:
-		# 更快的反应 + 明显的发光效果
-		_tween.tween_property(_background, "self_modulate", Color(1.2, 1.0, 0.6, 1.0), 0.15)
-	else:
-		_tween.tween_property(_background, "self_modulate", Color(1, 1, 1, 1), 0.25)
-
+#region 鼠标进入退出卡牌
 ## 鼠标进入逻辑
 func _on_area_mouse_entered() -> void:
-	_highlight(true)
-	_mat.set_shader_parameter("border_visibility", 1.0)
+	if highlight_behavior != null:
+		highlight_behavior.set_highlight(self, true)
 
 ## 鼠标退出逻辑
 func _on_area_mouse_exited() -> void:
-	_mat.set_shader_parameter("border_visibility", 0.0)
-	_highlight(false)
+	if highlight_behavior != null:
+		highlight_behavior.set_highlight(self, false)
+
 #endregion
 
-#region 点击检测逻辑
+#region 点击逻辑
+# 输入逻辑由 Node._input + Area2D._on_area_2d_input_event 共同决定
+
+## 处理鼠标输入事件：单击、双击、开始拖动
+## 由子节点的 _on_area_2d_input_event 触发调用
+func handle_mouse_input(event: InputEventMouseButton) -> void:
+	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		# 记录点击位置用于点击检测
+		var click_position = event.position
+
+		# 处理点击检测（单击/双击）
+		_handle_click_detection(click_position)
+		
+		if _can_start_drag():
+			# 按下鼠标左键，开始拖拽
+			_start_drag()
+			# 标记事件已处理，防止下层卡片也触发
+			get_viewport().set_input_as_handled()
+
+## 输入处理（只在拖拽时启用，优先级高于其他卡片）：正在拖动、结束拖动放置
+## 全局输入或者复杂的拖拽系统
+func _input(event: InputEvent) -> void:
+	# 只处理当前正在拖拽的卡片
+	if not is_dragging:
+		return
+	
+	# 拖动
+	if event is InputEventMouseMotion:
+		# 鼠标移动时更新卡牌位置（使用全局坐标计算）
+		global_position = get_global_mouse_position() - drag_offset
+		# 标记事件已处理，防止其他节点响应
+		get_viewport().set_input_as_handled()
+	
+	# 鼠标按钮事件
+	elif event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and not mouse_event.pressed:
+			# 松开鼠标左键，停止拖拽
+			_end_drag()
+			# 标记事件已处理
+			get_viewport().set_input_as_handled()
+
 ## 处理点击检测（区分单击和双击）
 func _handle_click_detection(click_position: Vector2) -> void:
 	# 检查是否在同一位置点击（容差范围内）
@@ -232,24 +272,6 @@ func _on_click_timeout() -> void:
 	if _click_count == 1:
 		_on_clicked()
 	_click_count = 0
-#endregion
-
-
-#region 鼠标事件
-## 处理鼠标输入事件
-func _handle_mouse_input(event: InputEventMouseButton) -> void:
-	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		# 记录点击位置用于点击检测
-		var click_position = event.position
-		
-		# 处理点击检测（单击/双击）
-		_handle_click_detection(click_position)
-		
-		if _can_start_drag():
-			# 按下鼠标左键，开始拖拽
-			_start_drag()
-			# 标记事件已处理，防止下层卡片也触发
-			get_viewport().set_input_as_handled()
 
 ## 从鼠标事件开始拖拽
 @warning_ignore("unused_parameter")
@@ -306,7 +328,8 @@ func _end_drag() -> void:
 		return
 	
 	# 检测是否放置在 Table 上
-	var table := _find_table_under_mouse()
+	
+	var table := NodeUtils.get_parent_of_type(self, Table)
 	if table:
 		# 找到 Table，调用其 on_card_dock 方法
 		table.on_card_dock(self)
@@ -321,9 +344,23 @@ func _on_drag_started() -> void:
 ## 拖拽结束回调（子类可重写）
 func _on_drag_ended() -> void:
 	pass
+
+## 检查是否允许拖拽
+func _can_start_drag() -> bool:
+	if drag_behavior != null:
+		return drag_behavior.can_drag(self)
+	return true
+
+## 单击事件回调（子类可重写）
+func _on_clicked() -> void:
+	pass
+
+## 双击事件回调（子类可重写）
+func _on_double_clicked() -> void:
+	pass
 #endregion
 
-#region Table 检测逻辑
+#region Table 逻辑
 ## 查找鼠标下方的 Table
 func _find_table_under_mouse() -> Table:
 	# 方法1：直接查找父节点链中的 Table
@@ -333,49 +370,8 @@ func _find_table_under_mouse() -> Table:
 			return current as Table
 		current = current.get_parent()
 	
-	# 方法2：使用射线检测鼠标位置下的节点
-	var mouse_pos := get_global_mouse_position()
-	var space_state := get_world_2d().direct_space_state
-	var query := PhysicsPointQueryParameters2D.new()
-	query.position = mouse_pos
-	query.collide_with_areas = true
-	query.collide_with_bodies = true
-	
-	var results := space_state.intersect_point(query, 32)
-	
-	# 从结果中查找 Table 节点
-	for result in results:
-		var collider = result.get("collider")
-		if collider:
-			# 向上遍历父节点查找 Table
-			current = collider as Node
-			while current:
-				if current is Table:
-					return current as Table
-				current = current.get_parent()
-	
 	return null
-#endregion
 
-## 输入处理（只在拖拽时启用，优先级高于其他卡片）
-func _input(event: InputEvent) -> void:
-	# 只处理当前正在拖拽的卡片
-	if not is_dragging:
-		return
-	
-	if event is InputEventMouseMotion:
-		# 鼠标移动时更新卡牌位置（使用全局坐标计算）
-		global_position = get_global_mouse_position() - drag_offset
-		# 标记事件已处理，防止其他节点响应
-		get_viewport().set_input_as_handled()
-	
-	elif event is InputEventMouseButton:
-		var mouse_event := event as InputEventMouseButton
-		if mouse_event.button_index == MOUSE_BUTTON_LEFT and not mouse_event.pressed:
-			# 松开鼠标左键，停止拖拽
-			_end_drag()
-			# 标记事件已处理
-			get_viewport().set_input_as_handled()
 
 ## 在 ready 时尝试放置到最近的 ArrayTable 表格中
 func _place_on_nearest_array_table() -> void:
@@ -410,4 +406,5 @@ func _place_on_nearest_array_table() -> void:
 		nearest.place(self, loc, speed)
 	else:
 		nearest.on_card_dock(self)
-			
+
+#endregion

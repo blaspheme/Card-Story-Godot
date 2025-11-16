@@ -5,19 +5,19 @@ extends Resource
 @export var label: TextData
 @export var text: TextData
 
-@export_category("Fragments")
+@export_group("Fragments")
 ## 牌堆的内容片段（Fragment 资源列表）
 @export var fragments: Array[FragmentData]
 ## 当牌堆为空时抽到的默认片段
 @export var default_fragment: FragmentData
 
-@export_category("抽取后附加")
+@export_group("抽取后附加")
 ## 从此牌堆抽到某个片段后，应额外添加到该片段上的片段列表
 @export var tag_on: Array[FragmentData]
 ## 抽牌时使用的 memory fragment（可为空）
 @export var memory_fragment: FragmentData
 
-@export_category("Options")
+@export_group("Options")
 ## 是否在初始化/补充时随机洗牌
 @export var shuffle: bool = false
 ## 用尽后是否从已丢弃/备份处补充

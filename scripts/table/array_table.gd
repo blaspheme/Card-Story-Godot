@@ -180,7 +180,7 @@ func find_free_locations(center_viz: Viz, l: Array[Viz]) -> Array[Vector2i]:
 		return find_free_locations(center_viz, l)
 
 ## Place
-func place(viz: Viz, grid_coord: Variant, move_speed: float) -> void:
+func place(viz: Viz, grid_coord: Variant, move_speed: float = 1.0) -> void:
 	super.place(viz, grid_coord, move_speed)
 	_array.for_v(grid_coord, viz.get_cell_size(), func(_current): return viz)
 

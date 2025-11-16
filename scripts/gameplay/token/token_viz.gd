@@ -2,7 +2,7 @@ extends Viz
 class_name TokenViz
 
 #region 参数
-@export_category("Token")
+@export_group("Token")
 @export var token_data: TokenData
 @export var auto_play: ActData
 @export var init_rule: RuleData
@@ -71,7 +71,7 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 			# 开始拖拽处理
-			_handle_mouse_input(mouse_event)
+			handle_mouse_input(mouse_event)
 #endregion
 
 #region 保存和加载数据逻辑

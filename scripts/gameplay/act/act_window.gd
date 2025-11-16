@@ -172,7 +172,7 @@ func highlight_slots(card_viz: CardViz, highlight: bool = true) -> void:
 func unhighlight_slots() -> void:
 	for slot_viz in slots:
 		if slot_viz and slot_viz.visible:
-			slot_viz.set_highlight(false)
+			slot_viz.highlight_behavior.set_highlight(slot_viz, false)
 
 ## 更新 Slots（检查哪些应该打开/关闭）
 func update_slots() -> void:
