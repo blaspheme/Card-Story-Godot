@@ -3,20 +3,29 @@ class_name HighlightCardBehavior
 
 # 高亮行为策略
 
-## 高亮 viz
 func set_highlight(viz: Viz, enabled: bool) -> void:
 	if enabled:
 		viz._mat.set_shader_parameter("border_visibility", 1.0)
 	else:
 		viz._mat.set_shader_parameter("border_visibility", 0.0)
 
-## 取消高亮目标
-func un_highlight_targets() -> void:
-	# 取消所有 token 的高亮
+func highlight_targets(viz: Viz) -> void:
+	_set_highlight_targets(viz, true)
+
+
+func un_highlight_targets(viz: Viz) -> void:
+	_set_highlight_targets(viz, false)
+
+## 设置高亮
+func _set_highlight_targets(viz: Viz, is_highlight: bool) -> void:
+	# 所有 token 的高亮
 	for token in Manager.GM.tokens:
 		if token.highlight_behavior != null:
-			token.highlight_behavior.set_highlight(token, false)
+			token.highlight_behavior.set_highlight(token, is_highlight)
 	
-	# 取消打开窗口的 slot 高亮
+	# 打开窗口的 slot 高亮
 	if Manager.GM.open_window != null:
-		Manager.GM.open_window.unhighlight_slots()
+		if is_highlight:
+			Manager.GM.open_window.highlight_slots(viz)
+		else:
+			Manager.GM.open_window.unhighlight_slots()

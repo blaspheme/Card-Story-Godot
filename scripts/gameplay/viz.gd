@@ -11,8 +11,7 @@ class_name Viz
 ## Viz 高亮着色的材质
 var _mat: ShaderMaterial
 ## 放置行为
-@export var drag_behavior: DragBehavior
-@export var drop_behavior: DropBehavior
+@export var mouse_behavior: MouseBehavior
 ## 是否在进行UI操作，避免其他节点也响应输入
 var is_input_active = false
 #endregion
@@ -25,7 +24,6 @@ var _bounds_calculated := false
 
 ## 状态属性
 var is_dragging := false  # 是否正在拖拽
-var _was_stacked := false  # 是否已被堆叠（用于阻止 Table 检测）
 var drag_offset := Vector2.ZERO
 var original_z_index: int = 0
 var dragging_plane: Node
@@ -215,7 +213,7 @@ func handle_mouse_input(event: InputEventMouseButton) -> void:
 		# 处理点击检测（单击/双击）
 		_handle_click_detection(click_position)
 		
-		if _can_start_drag():
+		if mouse_behavior != null and mouse_behavior.can_drag(self):
 			# 按下鼠标左键，开始拖拽
 			_start_drag()
 			# 标记事件已处理，防止下层卡片也触发
@@ -262,7 +260,8 @@ func _handle_click_detection(click_position: Vector2) -> void:
 			# 双击触发
 			_click_timer.stop()
 			_click_count = 0
-			_on_double_clicked()
+			if mouse_behavior != null:
+				mouse_behavior.handle_double_click(self)
 		else:
 			# 重新开始计时
 			_click_timer.start()
@@ -270,13 +269,14 @@ func _handle_click_detection(click_position: Vector2) -> void:
 ## 点击计时器超时（确认为单击）
 func _on_click_timeout() -> void:
 	if _click_count == 1:
-		_on_clicked()
+		if mouse_behavior != null:
+			mouse_behavior.handle_single_click(self)
 	_click_count = 0
 
 ## 从鼠标事件开始拖拽
 @warning_ignore("unused_parameter")
 func start_drag_from_mouse(_mouse_event: InputEventMouseButton) -> void:
-	if not _can_start_drag():
+	if mouse_behavior != null and mouse_behavior.can_drag(self):
 		return
 	
 	_start_drag()
@@ -284,14 +284,13 @@ func start_drag_from_mouse(_mouse_event: InputEventMouseButton) -> void:
 
 ## 外部直接启动拖拽（用于堆叠弹出后的拖拽传递）
 func start_drag_directly() -> void:
-	if not _can_start_drag():
+	if mouse_behavior != null and mouse_behavior.can_drag(self):
 		return
 	_start_drag()
 
 ## 开始拖拽
 func _start_drag() -> void:
 	is_dragging = true
-	_was_stacked = false  # 重置堆叠标志
 	# 使用全局鼠标位置和全局卡片位置计算偏移，避免父节点变化导致的坐标系问题
 	drag_offset = get_global_mouse_position() - global_position
 	if _tween:
@@ -306,8 +305,8 @@ func _start_drag() -> void:
 	# 启用输入处理（只处理当前卡片的输入）
 	set_process_input(true)
 	
-	# 触发拖拽开始事件（子类可监听）
-	_on_drag_started()
+	if mouse_behavior != null:
+		mouse_behavior.on_begin_drag(self)
 
 ## 结束拖拽
 func _end_drag() -> void:
@@ -320,58 +319,22 @@ func _end_drag() -> void:
 	# 停用输入处理
 	set_process_input(false)
 	
-	# 触发拖拽结束事件（子类可监听）- 优先检测卡牌堆叠
-	_on_drag_ended()
+	if mouse_behavior != null:
+		mouse_behavior.on_end_drag(self)
 	
-	# 如果子类已经处理了放置（如堆叠到其他卡片），则不再检测 Table
-	if _was_stacked:
-		return
-	
+
 	# 检测是否放置在 Table 上
 	
-	var table := NodeUtils.get_parent_of_type(self, Table)
-	if table:
-		# 找到 Table，调用其 on_card_dock 方法
-		table.on_card_dock(self)
-	else:
-		# 没有 Table，松开后平滑吸附到当前位置
-		move_to(position.round())
-
-## 拖拽开始回调（子类可重写）
-func _on_drag_started() -> void:
-	pass
-
-## 拖拽结束回调（子类可重写）
-func _on_drag_ended() -> void:
-	pass
-
-## 检查是否允许拖拽
-func _can_start_drag() -> bool:
-	if drag_behavior != null:
-		return drag_behavior.can_drag(self)
-	return true
-
-## 单击事件回调（子类可重写）
-func _on_clicked() -> void:
-	pass
-
-## 双击事件回调（子类可重写）
-func _on_double_clicked() -> void:
-	pass
+	#var table := NodeUtils.get_parent_of_type(self, Table)
+	#if table:
+		## 找到 Table，调用其 on_card_dock 方法
+		#table.on_card_dock(self)
+	#else:
+		## 没有 Table，松开后平滑吸附到当前位置
+		#move_to(position.round())
 #endregion
 
 #region Table 逻辑
-## 查找鼠标下方的 Table
-func _find_table_under_mouse() -> Table:
-	# 方法1：直接查找父节点链中的 Table
-	var current := get_parent()
-	while current:
-		if current is Table:
-			return current as Table
-		current = current.get_parent()
-	
-	return null
-
 
 ## 在 ready 时尝试放置到最近的 ArrayTable 表格中
 func _place_on_nearest_array_table() -> void:
@@ -408,3 +371,14 @@ func _place_on_nearest_array_table() -> void:
 		nearest.on_card_dock(self)
 
 #endregion
+
+## Drop 信号连接类
+func _on_drop(dragged, target) -> void:
+	if target is CardViz:
+		self.area.on_card_drop(dragged, target)
+	if target is TokenViz:
+		self.area.on_token_drop(dragged, target)
+	if target is SlotViz:
+		self.area.on_slot_drop(dragged, target)
+	if target is Table:
+		self.area.on_table_drop(dragged, target)

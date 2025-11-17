@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="DropTableBehavior" load_steps=2 format=3 uid="uid://coua5rw7neg3r"]
-
-[ext_resource type="Script" uid="uid://b4ava2svbi06v" path="res://scripts/behavior/drop/drop_table_behavior.gd" id="1_sa2qu"]
-
-[resource]
-script = ExtResource("1_sa2qu")
-metadata/_custom_type_script = "uid://b4ava2svbi06v"

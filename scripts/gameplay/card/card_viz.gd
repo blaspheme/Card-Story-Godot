@@ -12,7 +12,7 @@ class_name CardViz
 
 #region 变量
 ## SceneTree引用
-@onready var area: Area2D = $Area2D
+@onready var area: DropCardArea2D = $Area2D
 @onready var frag_tree: FragTree = $Root
 @onready var visuals: Node2D = $Visuals
 @onready var title_label: Label = $Visuals/Front/VBoxContainer/Title
@@ -66,6 +66,10 @@ func _ready() -> void:
 	if decay_timer:
 		decay_timer.decay_completed.connect(_on_decay_completed)
 	
+	## 连接Drop信号
+	if area:
+		area.dropped.connect(_on_drop)
+	
 	# 组件赋值
 	stack_counter._parent_card = self
 	stack_counter.update_ui()
@@ -84,6 +88,7 @@ func _on_create_card(_card_viz: CardViz) -> void:
 	if decay.paused:
 		_card_viz.decay.pause()
 
+
 #endregion
 
 #region 实现父类抽象方法：单击、拖拽、点击事件
@@ -98,107 +103,6 @@ func _get_background() -> Node2D:
 ## 获取材质
 func _get_material() -> ShaderMaterial:
 	return mat
-
-## 拖拽开始时的处理
-func _on_drag_started() -> void:
-	print("拖拽开始 - stack_drag: %s, count: %d" % [stack_counter.stack_drag, stack_counter.get_count()])
-	
-	# 如果不是整堆拖拽模式且堆中有卡片，弹出一张卡进行拖拽
-	if not stack_counter.stack_drag and stack_counter.get_count() > 0:
-		var popped_card := stack_counter.pop()
-		if popped_card != null:
-			# 停止当前卡的拖拽
-			is_dragging = false
-			z_index = original_z_index
-			_area.input_pickable = true
-			set_process_input(false)
-			
-			# 让弹出的卡开始拖拽
-			popped_card.start_drag_directly()
-			return
-	
-	# 高亮所有可接受此卡片的slot
-	if Manager.GM:
-		for _token_viz in Manager.GM.tokens:
-			var _slot_viz = _token_viz.act_window.accepts_card(self)
-			if _slot_viz != null and (_slot_viz.slotted_card == null or not _slot_viz.card_lock):
-				_token_viz.set_highlight(true)
-		
-		# 高亮打开的窗口中的slot
-		if Manager.GM.open_window != null:
-			Manager.GM.open_window.highlight_slots(self)
-
-## 拖拽结束时检测放置目标
-func _on_drag_ended() -> void:
-	var label_text = card_data.label.get_text() if card_data and card_data.label else "未命名"
-	print("结束拖拽卡片: ", label_text)
-	
-	# 取消高亮
-	highlight_behavior.set_highlight(self, false)
-	
-	# 检测是否放置在其他卡片上
-	_check_drop_targets()
-	
-	# 重置整堆拖拽标记（必须在 _check_drop_targets 之后，因为需要用到这个标记）
-	print("[CardViz] 重置 stack_drag = false")
-	stack_counter.stack_drag = false
-
-## 检测放置目标
-func _check_drop_targets() -> void:
-	print("_check_drop_targets - stack_drag 状态: %s, count: %d" % [stack_counter.stack_drag, stack_counter.get_count()])
-	
-	var space_state := get_world_2d().direct_space_state
-	var query := PhysicsPointQueryParameters2D.new()
-	query.position = global_position
-	query.collide_with_areas = true
-	query.collide_with_bodies = false
-	
-	var results := space_state.intersect_point(query)
-	
-	# 找到最上层的目标卡片
-	var target_card: CardViz = null
-	var highest_z_index := -999999
-	
-	for result in results:
-		var collider: Area2D = result["collider"] as Area2D
-		if collider and collider != area:  # 不是自己的Area2D
-			# 检查是否是其他卡片
-			var potential_target := collider.get_parent() as CardViz
-			if potential_target and potential_target != self and potential_target.z_index > highest_z_index:
-				highest_z_index = potential_target.z_index
-				target_card = potential_target
-	
-	# 尝试堆叠到卡片
-	if target_card:
-		# 检查目标卡是否是自己（避免自己堆叠到自己）
-		if target_card == self:
-			print("[CardViz] 目标卡是自己，跳过堆叠")
-			return
-		
-		# 如果是整堆拖拽模式，尝试合并堆叠
-		if stack_counter.stack_drag:
-			print("[CardViz] 整堆拖拽模式，尝试 merge")
-			# 把目标卡合并到当前拖拽的卡（而不是反过来，避免循环依赖）
-			if stack_counter.merge(target_card.stack_counter):
-				var target_label = target_card.card_data.label.get_text() if target_card.card_data and target_card.card_data.label else "未命名"
-				print("成功合并堆叠到卡片: ", target_label)
-				# 设置堆叠标志，阻止后续 Table 检测
-				_was_stacked = true
-			else:
-				print("无法合并堆叠到目标卡片")
-		# 否则是单卡拖拽，尝试push
-		else:
-			print("[CardViz] 单卡拖拽模式，尝试 push")
-			if target_card.accept_dropped_card(self):
-				var target_label = target_card.card_data.label.get_text() if target_card.card_data and target_card.card_data.label else "未命名"
-				print("成功堆叠到卡片: ", target_label)
-				# 设置堆叠标志，阻止后续 Table 检测
-				_was_stacked = true
-			else:
-				print("无法堆叠到目标卡片")
-	# 如果没有找到目标卡片，卡片保持在当前拖拽结束的位置（自由放置）
-	else:
-		print("[CardViz] 未检测到目标卡片，自由放置")
 
 func get_cell_size() -> Vector2i:
 	return cell_count
@@ -558,67 +462,6 @@ func get_parent_of_type(type) -> Node:
 # ===============================
 # 点击交互（Unity 迁移）
 # ===============================
-
-## 处理卡片点击（对应 Unity OnPointerClick）
-func _on_card_clicked(event: InputEventMouseButton) -> void:
-	if not interactive:
-		return
-	
-	# 单击：翻转或显示信息
-	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		if _face_down:
-			reverse()
-		else:
-			# 显示卡片信息UI（TODO: 需要实现 UIManager）
-			# if UIManager and UIManager.has_method("show_card_info"):
-			# 	UIManager.show_card_info(self)
-			pass
-		
-		# 双击：自动放置到 Slot
-		if event.double_click:
-			_handle_double_click()
-
-## 处理双击逻辑
-func _handle_double_click() -> void:
-	# 从 Slot 中取出卡片（TODO: 需要实现 SlotViz）
-	# var slot = get_parent_of_type(SlotViz)
-	# if slot and slot.has("card_lock") and not slot.card_lock:
-	# 	if slot.has_method("unslot_card"):
-	# 		slot.unslot_card()
-	# 	if GameManager.table and GameManager.table.has_method("return_to_table"):
-	# 		GameManager.table.return_to_table(self)
-	# 	return
-	
-	# 尝试自动放置到可用的 Slot
-	var ready_slot = null
-	
-	# 先检查打开的窗口
-	if Manager.GM.has("open_window") and Manager.GM.open_window:
-		if Manager.GM.open_window.has_method("accepts_card"):
-			ready_slot = Manager.GM.open_window.accepts_card(self, true)
-	
-	# 再检查所有 token 窗口
-	if not ready_slot and Manager.GM.has("tokens"):
-		for token in Manager.GM.tokens:
-			if token.has("act_window") and token.act_window:
-				if token.act_window.has_method("accepts_card"):
-					ready_slot = token.act_window.accepts_card(self, true)
-					if ready_slot:
-						break
-	
-	# 如果找到可用 slot，放置卡片
-	if ready_slot:
-		var card_viz_y = yield_card()
-		
-		# 通知父节点
-		var parent_dock = card_viz_y.get_parent()
-		if parent_dock and parent_dock.has_method("on_card_undock"):
-			parent_dock.on_card_undock(card_viz_y)
-		
-		# 抓取到 slot（TODO: SlotViz.grab 方法签名可能不同）
-		if ready_slot.has_method("grab_card"):
-			ready_slot.grab_card(card_viz_y, true)
-
 
 ## 检查记忆是否相等（对应 Unity MemoryEqual）
 func memory_equal(other_card: CardViz) -> bool:

@@ -3,11 +3,11 @@
 [ext_resource type="Script" uid="uid://ct12jv14my50w" path="res://scripts/gameplay/card/card_viz.gd" id="1_fi7n1"]
 [ext_resource type="Resource" uid="uid://hsmcnfc340se" path="res://resources/data/card/flower.tres" id="2_iqxif"]
 [ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="3_02ip0"]
-[ext_resource type="Resource" uid="uid://i4llhu3perai" path="res://resources/behavior/highlight_card_behavior.tres" id="3_jhmj3"]
+[ext_resource type="Script" uid="uid://c54xkw76tuti4" path="res://scripts/behavior/highlight/highlight_card_behavior.gd" id="3_jhmj3"]
 [ext_resource type="Shader" uid="uid://d355bst4un70p" path="res://resources/shaders/ui/edge_gradient_border.gdshader" id="4_iqxif"]
-[ext_resource type="Resource" uid="uid://bkpoqj6ylfrvp" path="res://resources/behavior/drag_card_behavior.tres" id="4_nmxfg"]
+[ext_resource type="Script" uid="uid://bybm4aw1q2oky" path="res://scripts/behavior/mouse/mouse_card_behavior.gd" id="4_jhmj3"]
 [ext_resource type="Texture2D" uid="uid://ck8b5vmcv5ai2" path="res://assets/sprite/card_border.svg" id="5_nmxfg"]
-[ext_resource type="Resource" uid="uid://ds0j8br5k0jsw" path="res://resources/behavior/drop_card_behavior.tres" id="5_tn6ot"]
+[ext_resource type="Script" uid="uid://bcans81qth5mu" path="res://scripts/behavior/drop/drop_card_area2d.gd" id="5_tn6ot"]
 [ext_resource type="Texture2D" uid="uid://pgo1v2tn7yih" path="res://icon.svg" id="6_tn6ot"]
 [ext_resource type="Script" uid="uid://hd03dvuv8qae" path="res://scripts/gameplay/card/card_dency.gd" id="7_fi7n1"]
 [ext_resource type="PackedScene" uid="uid://bb2gokljyaa7w" path="res://scenes/gameplay/widgets/stack_counter.tscn" id="7_w6jym"]
@@ -23,14 +23,25 @@ shader_parameter/border_visibility = 0.0
 shader_parameter/gradient_intensity = 3.0
 shader_parameter/gradient_steps = 10.0
 
-[node name="CardViz" type="Node2D"]
+[node name="CardViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior")]
 script = ExtResource("1_fi7n1")
 card_data = ExtResource("2_iqxif")
-highlight_behavior = ExtResource("3_jhmj3")
-drag_behavior = ExtResource("4_nmxfg")
-drop_behavior = ExtResource("5_tn6ot")
+highlight_behavior = NodePath("Behavior/HighlightCardBehavior")
+mouse_behavior = NodePath("Behavior/MouseCardBehavior")
+
+[node name="Behavior" type="Node" parent="."]
+
+[node name="HighlightCardBehavior" type="Node" parent="Behavior"]
+script = ExtResource("3_jhmj3")
+metadata/_custom_type_script = "uid://c54xkw76tuti4"
+
+[node name="MouseCardBehavior" type="Node" parent="Behavior"]
+script = ExtResource("4_jhmj3")
+metadata/_custom_type_script = "uid://bybm4aw1q2oky"
 
 [node name="Area2D" type="Area2D" parent="."]
+script = ExtResource("5_tn6ot")
+metadata/_custom_type_script = "uid://bcans81qth5mu"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("RectangleShape2D_fjvxj")

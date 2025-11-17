@@ -7,6 +7,7 @@ extends Node
 
 # 事件到订阅数组的映射（精确事件名）
 var _handlers: Dictionary = {}
+var _pattern_handlers: Array[PatternHandler] = []
 
 # 模式订阅：使用 PatternHandler 封装，便于类型检查与保留原始 pattern 文本
 class PatternHandler:
@@ -25,7 +26,6 @@ class PatternHandler:
 		self.priority = prio
 		self.once = oonce
 
-var _pattern_handlers: Array = [] # Array of PatternHandler
 
 # 异步队列：用于存放延迟到下一帧处理的事件，方便在保存前 flush
 var _deferred_queue: Array = []

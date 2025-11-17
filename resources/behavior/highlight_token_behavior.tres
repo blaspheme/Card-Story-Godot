@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="HighlightTokenBehavior" load_steps=2 format=3 uid="uid://bbmfcx20qtn1j"]
-
-[ext_resource type="Script" uid="uid://de8u80bdupwod" path="res://scripts/behavior/highlight/highlight_token_behavior.gd" id="1_prl3b"]
-
-[resource]
-script = ExtResource("1_prl3b")
-metadata/_custom_type_script = "uid://de8u80bdupwod"

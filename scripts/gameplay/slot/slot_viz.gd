@@ -52,7 +52,6 @@ signal card_unslotted(card: CardViz)
 signal slot_clicked(slot_viz: SlotViz)
 #endregion
 
-
 # ===============================
 # 生命周期方法
 # ===============================

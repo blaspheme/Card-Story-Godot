@@ -31,6 +31,31 @@ position = Vector2(280, 297)
 offset_right = 900.0
 offset_bottom = 650.0
 
+[node name="Control" type="Control" parent="Visuals"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Visuals"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 604.0
+offset_right = 110.0
+offset_bottom = 652.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="OKButton" type="Button" parent="Visuals/HBoxContainer"]
+layout_mode = 2
+text = "OK"
+
+[node name="CollectButton" type="Button" parent="Visuals/HBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
 [node name="ResultsLane" type="Node" parent="."]
 script = ExtResource("2_x0mbc")
 

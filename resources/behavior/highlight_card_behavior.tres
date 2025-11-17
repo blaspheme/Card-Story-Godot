@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="HighlightCardBehavior" load_steps=2 format=3 uid="uid://i4llhu3perai"]
-
-[ext_resource type="Script" uid="uid://c54xkw76tuti4" path="res://scripts/behavior/highlight/highlight_card_behavior.gd" id="1_bk0vq"]
-
-[resource]
-script = ExtResource("1_bk0vq")
-metadata/_custom_type_script = "uid://c54xkw76tuti4"

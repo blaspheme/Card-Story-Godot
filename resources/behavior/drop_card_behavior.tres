@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="DropCardBehavior" load_steps=2 format=3 uid="uid://ds0j8br5k0jsw"]
-
-[ext_resource type="Script" uid="uid://bcans81qth5mu" path="res://scripts/behavior/drop/drop_card_behavior.gd" id="1_sj3yj"]
-
-[resource]
-script = ExtResource("1_sj3yj")
-metadata/_custom_type_script = "uid://bcans81qth5mu"

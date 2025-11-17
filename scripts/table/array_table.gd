@@ -3,6 +3,8 @@ extends Table
 class_name ArrayTable
 
 #region 参数定义
+@onready var area: DropTableArea2D = $TableArea2D
+
 # 网格实现：使用 Vector2i 格坐标
 @export var cell_size: Vector2 = Vector2(64, 64):   # 单元格大小（像素）
 	set(value):
@@ -52,9 +54,9 @@ func _ready() -> void:
 	_update_grid_corner()
 	queue_redraw()
 	
-	# 添加 CollisionShape2D 使 Table 可以被物理检测
-	if not Engine.is_editor_hint():
-		_setup_collision_area()
+	## 连接Drop信号
+	if area:
+		area.dropped.connect(_on_drop)
 
 func _draw() -> void:
 	if not show_grid:
@@ -251,23 +253,13 @@ func grow(i: int) -> void:
 	# 触发重绘
 	queue_redraw()
 
-## 设置碰撞区域（使 Table 可以被射线检测到）
-func _setup_collision_area() -> void:
-	# 查找或创建 Area2D
-	var area := get_node_or_null("TableArea") as Area2D
-	if not area:
-		area = Area2D.new()
-		area.name = "TableArea"
-		area.collision_layer = 0  # 不参与碰撞
-		area.collision_mask = 0   # 不检测碰撞
-		area.input_pickable = true  # 可以被输入检测
-		add_child(area)
-	
-	# 创建覆盖整个 Table 的矩形碰撞形状
-	var collision_shape := CollisionShape2D.new()
-	var rect_shape := RectangleShape2D.new()
-	rect_shape.size = Vector2(plane_width, plane_height)
-	collision_shape.shape = rect_shape
-	collision_shape.position = grid_corner + Vector2(plane_width / 2, plane_height / 2)
-	area.add_child(collision_shape)
 #endregion
+
+## Drop 信号连接类
+@warning_ignore("unused_parameter")
+func _on_drop(dragged, target) -> void:
+	var dragged_viz = dragged.get_parent()
+	if dragged_viz == null:
+		return
+	if dragged_viz is CardViz or dragged_viz is TokenViz:
+		area.on_viz_drop(dragged_viz, self)

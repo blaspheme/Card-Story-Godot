@@ -7,9 +7,10 @@ class_name TokenViz
 @export var auto_play: ActData
 @export var init_rule: RuleData
 @export var memory_fragment: FragmentData
-
+@export_group("Table")
+@export var cell_count: Vector2i
 # SceneTree引用
-@onready var area: Area2D = $Area2D
+@onready var area: DropTokenArea2D = $Area2D
 @onready var title: Label = $Visuals/Label
 @onready var front_image: TextureRect = $Visuals/Image
 @onready var background: Sprite2D = $Visuals/Background
@@ -25,6 +26,9 @@ func _ready() -> void:
 	load_token(token_data)
 	_init_drag_system()
 	token_timer.start_timer(5)
+	if area:
+		area.dropped.connect(_on_drop)
+	
 	if Manager.GM:
 		dragging_plane = Manager.GM.card_drag_plane
 		if act_window == null:
@@ -53,6 +57,9 @@ func _get_material() -> ShaderMaterial:
 func _can_start_drag() -> bool:
 	# 始终允许拖拽，具体的弹出逻辑在_on_drag_started中处理
 	return true
+
+func get_cell_size() -> Vector2i:
+	return cell_count
 #endregion
 
 #region 信号回调（连接到场景中的信号）

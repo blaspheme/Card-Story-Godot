@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://4fyoq8npekf0"]
+[gd_scene load_steps=17 format=3 uid="uid://4fyoq8npekf0"]
 
 [ext_resource type="Script" uid="uid://clnensqaofqvj" path="res://scripts/manager/game_manager.gd" id="1_gh441"]
 [ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="2_2p25t"]
@@ -12,8 +12,12 @@
 [ext_resource type="Script" uid="uid://dh1fenjuvn3sb" path="res://scripts/manager/ui_manager.gd" id="6_bhb63"]
 [ext_resource type="Script" uid="uid://bdwsjomcfjv2w" path="res://scripts/table/array_table.gd" id="7_lb4ud"]
 [ext_resource type="PackedScene" uid="uid://dinc0dm8xp43h" path="res://scenes/gameplay/ui/card_info.tscn" id="12_i6m2i"]
+[ext_resource type="Script" uid="uid://b4ava2svbi06v" path="res://scripts/behavior/drop/drop_table_area2d.gd" id="12_krs01"]
 [ext_resource type="PackedScene" uid="uid://buktl7sof06al" path="res://scenes/gameplay/ui/aspect_info.tscn" id="13_td3fc"]
 [ext_resource type="PackedScene" uid="uid://cjcqibb0ddp82" path="res://scenes/gameplay/ui/control.tscn" id="14_216mg"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2eo0c"]
+size = Vector2(2021, 1572)
 
 [node name="Gameplay" type="Node"]
 
@@ -61,6 +65,16 @@ position = Vector2(583, 199)
 
 [node name="TokenViz" parent="Root/Table/TableFrag" instance=ExtResource("4_m3hu3")]
 position = Vector2(551, 719)
+
+[node name="TableArea2D" type="Area2D" parent="Root/Table"]
+position = Vector2(-1015.5729, -571.21655)
+script = ExtResource("12_krs01")
+metadata/_custom_type_script = "uid://b4ava2svbi06v"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Root/Table/TableArea2D"]
+position = Vector2(1016.5, 796)
+shape = SubResource("RectangleShape2D_2eo0c")
+debug_color = Color(0.5903429, 0.5356812, 0.33098766, 0.41960785)
 
 [node name="WindowPlane" type="Node" parent="Root"]
 

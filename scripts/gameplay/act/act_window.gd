@@ -6,19 +6,19 @@ class_name ActWindow
 # ===============================
 
 #region 场景树引用
-@onready var visuals: Node2D = $Visuals if has_node("Visuals") else null
-@onready var label_text: Label = $Visuals/Label if has_node("Visuals/Label") else null
-@onready var text_display: RichTextLabel = $Visuals/Text if has_node("Visuals/Text") else null
-@onready var slots_frag: FragTree = $SlotsFragTree if has_node("SlotsFragTree") else null
-@onready var idle_slots_container: Node = $IdleSlots if has_node("IdleSlots") else null
-@onready var run_slots_container: Node = $RunSlots if has_node("RunSlots") else null
-@onready var result_lane: Node = $ResultLane if has_node("ResultLane") else null
-@onready var aspect_bar: Node = $AspectBar if has_node("AspectBar") else null
-@onready var card_bar: Node = $CardBar if has_node("CardBar") else null
-@onready var timer_widget: Node = $Timer if has_node("Timer") else null
-@onready var ok_button: Button = $Visuals/OKButton if has_node("Visuals/OKButton") else null
-@onready var collect_button: Button = $Visuals/CollectButton if has_node("Visuals/CollectButton") else null
-@onready var act_logic: ActLogic = $ActLogic if has_node("ActLogic") else null
+@onready var visuals: Node2D = $Visuals
+@onready var label_text: Label = $Visuals/Label
+@onready var text_display: RichTextLabel = $Visuals/Text
+@onready var slots_frag: FragTree = $SlotsFragTree
+@onready var idle_slots_container: Node = $IdleSlots
+@onready var run_slots_container: Node = $RunSlots
+@onready var result_lane: Node = $ResultLane
+@onready var aspect_bar: Node = $AspectBar
+@onready var card_bar: Node = $CardBar
+@onready var timer_widget: Node = $Timer
+@onready var ok_button: Button = $Visuals/HBoxContainer/OKButton
+@onready var collect_button: Button = $Visuals/HBoxContainer/CancelButton
+@onready var act_logic: ActLogic = $ActLogic
 #endregion
 
 #region 导出变量
