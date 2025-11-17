@@ -8,27 +8,20 @@ signal dropped(dragged, target)
 
 ## 放置
 @warning_ignore("unused_parameter")
-func on_drop(dragged) -> void:
+func on_drop(dragged: Area2D) -> void:
 	# 检查鼠标位置是否在此 Area 内
 	if get_overlapping_areas().has(dragged):
 		emit_signal("dropped", dragged, owner)
 
-
 #region Drop时候不同对象的操作的函数签名
-## 放置到CardViz上面
-func on_card_drop(dragged, target) -> void:
-	pass
+## CardViz被放置到当前Viz
+func on_card_drop(dragged: Area2D) -> void:
+	var dragged_card = NodeUtils.get_parent_of_type(dragged, CardViz) as CardViz
+	Manager.GM.table.return_to_table(dragged_card)
 
-## 放置到TokenViz上面
-func on_token_drop(dragged, target) -> void:
-	pass
-
-## 放置到SlotViz上面
-func on_slot_drop(dragged, target) -> void:
-	pass
-
-## 放置到Table上面
-func on_table_drop(dragged, target) -> void:
-	pass
+## TokenViz被放置到当前Viz
+func on_token_drop(dragged: Area2D) -> void:
+	var dragged_token = NodeUtils.get_parent_of_type(dragged, TokenViz) as TokenViz
+	Manager.GM.table.return_to_table(dragged_token)
 
 #endregion

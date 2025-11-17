@@ -53,11 +53,6 @@ func _get_background() -> Node2D:
 func _get_material() -> ShaderMaterial:
 	return mat
 
-## 检查是否允许拖拽、
-func _can_start_drag() -> bool:
-	# 始终允许拖拽，具体的弹出逻辑在_on_drag_started中处理
-	return true
-
 func get_cell_size() -> Vector2i:
 	return cell_count
 #endregion

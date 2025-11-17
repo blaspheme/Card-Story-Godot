@@ -16,6 +16,14 @@ static func find_children_recursive(node: Node, type_class: Variant, recursive:b
 			result.append_array(find_children_recursive(child, type_class, recursive))
 	return result
 
+static func set_node_and_area2d_active(_node: Node2D, active = false) -> void:
+	_node.visible = active
+	var _area = _node.get_node("Area2D") as Area2D
+	_area.monitoring = active
+	_area.monitorable = active
+	var _c = _area.get_node("CollisionShape2D") as CollisionShape2D
+	_c.disabled = !active
+
 
 ## 获取指定节点的所有祖先节点（包括 parent、grandparent...）
 ## @param node: 起始节点

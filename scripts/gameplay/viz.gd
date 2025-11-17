@@ -36,7 +36,7 @@ var _last_click_position: Vector2 = Vector2.ZERO
 var _click_threshold: float = 5.0  # 判定为同一位置的像素阈值
 
 ## 缓存引用（由子类在 _ready 中初始化）
-var _area: Area2D
+var _area: DropArea2D
 var _background: Node2D
 
 var _tween: Tween
@@ -273,20 +273,12 @@ func _on_click_timeout() -> void:
 			mouse_behavior.handle_single_click(self)
 	_click_count = 0
 
-## 从鼠标事件开始拖拽
-@warning_ignore("unused_parameter")
-func start_drag_from_mouse(_mouse_event: InputEventMouseButton) -> void:
-	if mouse_behavior != null and mouse_behavior.can_drag(self):
-		return
-	
-	_start_drag()
-	get_viewport().set_input_as_handled()
-
 ## 外部直接启动拖拽（用于堆叠弹出后的拖拽传递）
 func start_drag_directly() -> void:
-	if mouse_behavior != null and mouse_behavior.can_drag(self):
+	if mouse_behavior == null or not mouse_behavior.can_drag(self):
 		return
 	_start_drag()
+	get_viewport().set_input_as_handled()
 
 ## 开始拖拽
 func _start_drag() -> void:
@@ -372,13 +364,10 @@ func _place_on_nearest_array_table() -> void:
 
 #endregion
 
-## Drop 信号连接类
+## Drop 信号连接类， _area 是 target 的area
 func _on_drop(dragged, target) -> void:
-	if target is CardViz:
-		self.area.on_card_drop(dragged, target)
-	if target is TokenViz:
-		self.area.on_token_drop(dragged, target)
-	if target is SlotViz:
-		self.area.on_slot_drop(dragged, target)
-	if target is Table:
-		self.area.on_table_drop(dragged, target)
+	var dragged_viz = dragged.get_parent() as Viz
+	if dragged_viz is CardViz:
+		_area.on_card_drop(dragged)
+	if dragged_viz is TokenViz:
+		_area.on_token_drop(dragged)

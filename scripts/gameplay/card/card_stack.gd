@@ -49,11 +49,7 @@ func push(card_viz: CardViz) -> bool:
 	card_viz.reparent(self)
 	# 放到本地原点并隐藏（表示被堆起来）
 	card_viz.position = Vector2.ZERO
-	if card_viz.has_method("set_process") :
-		# 停止处理（若卡片脚本使用 process）
-		card_viz.set_process(false)
-		card_viz.set_physics_process(false)
-	card_viz.visible = false
+	NodeUtils.set_node_and_area2d_active(card_viz, false)
 	
 	# 保持衰变计时器运行（堆叠中的卡牌仍然可以独立衰变）
 	# 衰变计时器会继续运行，当衰变完成时会自动弹出
@@ -76,10 +72,7 @@ func pop() -> CardViz:
 		return null
 	
 	# 将卡设为可见并恢复处理
-	top_card.visible = true
-	if top_card.has_method("set_process"):
-		top_card.set_process(true)
-		top_card.set_physics_process(true)
+	NodeUtils.set_node_and_area2d_active(top_card, true)
 	
 	# 从堆栈移除并把父级设为场景中的原位（此处将其父设为父卡的父节点，通常是 Table 节点）
 	var target_parent := _parent_card.get_parent()
@@ -146,10 +139,12 @@ func merge(other: CardStack) -> bool:
 	while other._count > 0:
 		var card := other.pop()
 		if card:
+			NodeUtils.set_node_and_area2d_active(card, false)
 			cards_to_transfer.append(card)
 	
 	# 添加 other 的父卡
 	if other._parent_card and other._parent_card != _parent_card:
+		NodeUtils.set_node_and_area2d_active(other._parent_card, false)
 		cards_to_transfer.append(other._parent_card)
 	
 	# 将所有卡片 push 到当前堆叠
@@ -208,11 +203,7 @@ func eject_mismatched_cards() -> Array[CardViz]:
 	
 	# 弹出不匹配的卡版
 	for card in cards_to_remove:
-		# 设置为可见
-		card.visible = true
-		if card.has_method("set_process"):
-			card.set_process(true)
-			card.set_physics_process(true)
+		NodeUtils.set_node_and_area2d_active(card, true)
 		
 		# 移动到父卡的父节点（使用 reparent() 方法）
 		var target_parent = _parent_card.get_parent()
@@ -242,11 +233,8 @@ func handle_stacked_card_decay(decaying_card: CardViz) -> bool:
 	print("CardStack: 处理堆叠中卡版的衰变: %s" % decaying_card.card_data.label)
 	
 	# 设置为可见
-	decaying_card.visible = true
-	if decaying_card.has_method("set_process"):
-		decaying_card.set_process(true)
-		decaying_card.set_physics_process(true)
-	
+	NodeUtils.set_node_and_area2d_active(decaying_card, true)
+
 	# 移动到父卡的父节点（使用 reparent() 方法）
 	var target_parent = _parent_card.get_parent()
 	var target_pos = _parent_card.global_position + Vector2(randf_range(-30, 30), randf_range(-30, 30))

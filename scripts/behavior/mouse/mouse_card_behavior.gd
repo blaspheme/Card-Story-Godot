@@ -11,11 +11,7 @@ func on_begin_drag(viz: Viz) -> void:
 		var popped_card = card_viz.stack_counter.pop()
 		if popped_card != null:
 			# 停止当前卡的拖拽
-			card_viz.is_dragging = false
-			card_viz.z_index = card_viz.original_z_index
-			card_viz._area.input_pickable = true
-			set_process_input(false)
-			
+			card_viz._end_drag()
 			# 让弹出的卡开始拖拽
 			popped_card.start_drag_directly()
 			return

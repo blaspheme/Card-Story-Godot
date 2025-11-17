@@ -59,7 +59,7 @@ func _ready() -> void:
 	# 初始化拖拽系统（父类方法）
 	_init_drag_system()
 	
-	if frag_tree != null:
+	if frag_tree:
 		frag_tree.on_create_card.connect(_on_create_card.bind(self))
 	
 	# 连接衰败完成信号
