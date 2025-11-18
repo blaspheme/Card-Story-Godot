@@ -66,8 +66,6 @@ func opens(act_logic: ActLogic) -> bool:
 	var context: Context = Context.acquire_from_act_logic(act_logic)
 
 	for test in spawn_tests:
-		if test == null:
-			continue
 		var r = test.attempt(context)
 		if not test.can_fail and r == false:
 			return false
@@ -86,40 +84,23 @@ func check_frag_rules(card_viz: CardViz) -> bool:
 
 	# essential: 必须对每个 essential 满足 count
 	for frag_l in essential:
-		if frag_l == null:
-			continue
-		var c = 0
-		if card_viz.frag_tree and card_viz.frag_tree.has_method("count"):
-			c = card_viz.frag_tree.count(frag_l)
-		if c < int(frag_l.count):
+		if card_viz.frag_tree.count_held_fragment(frag_l) < frag_l.count:
 			return false
 
 	# forbidden: 对每个 forbidden 必须小于 count
 	for frag_l in forbidden:
-		if frag_l == null:
-			continue
-		var c = 0
-		if card_viz.frag_tree and card_viz.frag_tree.has_method("count"):
-			c = card_viz.frag_tree.count(frag_l)
-		if c >= int(frag_l.count):
+		if card_viz.frag_tree.count_held_fragment(frag_l) >= frag_l.count:
 			return false
-
+		
 	# required: 如果存在任意一个 required 满足 count 则通过
 	for frag_l in required:
-		if frag_l == null:
-			continue
-		var c = 0
-		if card_viz.frag_tree and card_viz.frag_tree.has_method("count"):
-			c = card_viz.frag_tree.count(frag_l)
-		if c >= int(frag_l.count):
+		if card_viz.frag_tree.count_held_fragment(frag_l) >= frag_l.count:
 			return true
 
-	# 如果没有 required 条目则通过，否则未通过
-	#return required.clear()
-	return true
+	return required.size() == 0
 
 # 判断 Slot 是否接受指定卡片（包含额外的 card_rule 检查）
-func accepts_card(card_viz) -> bool:
+func accepts_card(card_viz: CardViz) -> bool:
 	if accept_all:
 		return true
 
@@ -127,9 +108,7 @@ func accepts_card(card_viz) -> bool:
 		if card_rule == null:
 			return true
 		# 使用卡片上下文评估规则（依赖 Context 构造）
-		var context = null
-		if typeof(Context) != TYPE_NIL:
-			context = Context.acquire_from_card_viz(card_viz)
+		var context = Context.acquire_from_card_viz(card_viz)
 		return card_rule.evaluate(context)
 
 	return false

@@ -9,7 +9,7 @@ func on_begin_drag(viz: Viz) -> void:
 ## 结束拖拽
 @warning_ignore("unused_parameter")
 func on_end_drag(viz: Viz) -> void:
-	_on_drag_release(viz._area)
+	_on_drag_release(viz.area)
 
 ## 可以拖拽
 @warning_ignore("unused_parameter")

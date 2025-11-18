@@ -14,6 +14,9 @@ var _mat: ShaderMaterial
 @export var mouse_behavior: MouseBehavior
 ## 是否在进行UI操作，避免其他节点也响应输入
 var is_input_active = false
+@export_group("导出节点")
+## 卡牌区域: 拖拽、放置、点击触发区域
+@export var area: DropArea2D
 #endregion
 
 #region 属性
@@ -36,7 +39,6 @@ var _last_click_position: Vector2 = Vector2.ZERO
 var _click_threshold: float = 5.0  # 判定为同一位置的像素阈值
 
 ## 缓存引用（由子类在 _ready 中初始化）
-var _area: DropArea2D
 var _background: Node2D
 
 var _tween: Tween
@@ -49,11 +51,6 @@ func _ready() -> void:
 #endregion
 
 #region 抽象方法
-## 获取 Area2D 节点（用于输入检测）
-func _get_area() -> Area2D:
-	push_error("DragCardViz._get_area() 必须被子类重写")
-	return null
-
 ## 获取背景节点（用于高亮效果）
 func _get_background() -> Node2D:
 	push_error("DragCardViz._get_background() 必须被子类重写")
@@ -139,11 +136,9 @@ static func _calculate_bounds(node: Node) -> Rect2:
 #region 初始化方法（子类在 _ready 中调用）
 ## 初始化拖拽系统（子类必须在 _ready 中调用）
 func _init_drag_system() -> void:
-	_area = _get_area()
 	_background = _get_background()
 	_mat = _get_material()
 	
-	assert(_area != null, "DragCardViz: Area2D 不能为 null")
 	assert(_background != null, "DragCardViz: Background 节点不能为 null")
 	assert(_mat != null, "DragCardViz: ShaderMaterial 不能为 null")
 	
@@ -292,7 +287,7 @@ func _start_drag() -> void:
 	z_index = 1000
 	
 	# 禁用 Area2D 输入，防止拖拽时触发其他事件
-	_area.input_pickable = false
+	area.input_pickable = false
 	
 	# 启用输入处理（只处理当前卡片的输入）
 	set_process_input(true)
@@ -307,7 +302,7 @@ func _end_drag() -> void:
 	# 恢复原始层级
 	z_index = original_z_index
 	# 重新启用 Area2D 输入
-	_area.input_pickable = true
+	area.input_pickable = true
 	# 停用输入处理
 	set_process_input(false)
 	
@@ -364,10 +359,10 @@ func _place_on_nearest_array_table() -> void:
 
 #endregion
 
-## Drop 信号连接类， _area 是 target 的area
+## Drop 信号连接类， area 是 target 的area
 func _on_drop(dragged, target) -> void:
 	var dragged_viz = dragged.get_parent() as Viz
 	if dragged_viz is CardViz:
-		_area.on_card_drop(dragged)
+		area.on_card_drop(dragged)
 	if dragged_viz is TokenViz:
-		_area.on_token_drop(dragged)
+		area.on_token_drop(dragged)

@@ -1,34 +1,54 @@
-[gd_scene load_steps=4 format=3 uid="uid://bl2btp6irrfcg"]
+[gd_scene load_steps=10 format=3 uid="uid://bl2btp6irrfcg"]
 
 [ext_resource type="Script" uid="uid://ciraeenicj366" path="res://scripts/gameplay/slot/slot_viz.gd" id="1_40xr8"]
 [ext_resource type="Resource" uid="uid://bjb87p4l62gad" path="res://resources/data/slot/hit.tres" id="2_r56d6"]
+[ext_resource type="Script" uid="uid://bww2iy4wjypyl" path="res://scripts/behavior/highlight/highlight_slot_behavior.gd" id="3_82hba"]
+[ext_resource type="Script" uid="uid://bvbfxbqa5j6s3" path="res://scripts/behavior/mouse/mouse_slot_behavior.gd" id="4_21ml6"]
+[ext_resource type="Script" uid="uid://cr60xh0vb6ww1" path="res://scripts/behavior/drop/drop_slot_area2d.gd" id="5_0uwf5"]
+[ext_resource type="Texture2D" uid="uid://ck8b5vmcv5ai2" path="res://assets/sprite/card_border.svg" id="6_jke6h"]
+[ext_resource type="Shader" uid="uid://d355bst4un70p" path="res://resources/shaders/ui/edge_gradient_border.gdshader" id="6_o2k3g"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_so0dm"]
 size = Vector2(200, 300)
 
-[node name="SlotViz" type="Node2D"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_g75y7"]
+shader = ExtResource("6_o2k3g")
+shader_parameter/line_colour = Color(1, 1, 1, 1)
+shader_parameter/line_thickness = 0.04
+shader_parameter/border_visibility = 0.0
+shader_parameter/gradient_intensity = 3.0
+shader_parameter/gradient_steps = 10.0
+
+[node name="SlotViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior", "area")]
 script = ExtResource("1_40xr8")
 slot_data = ExtResource("2_r56d6")
+highlight_behavior = NodePath("Behavior/HighlightSlotBehavior")
+mouse_behavior = NodePath("Behavior/MouseSlotBehavior")
+area = NodePath("Area2D")
+
+[node name="Behavior" type="Node" parent="."]
+
+[node name="HighlightSlotBehavior" type="Node" parent="Behavior"]
+script = ExtResource("3_82hba")
+metadata/_custom_type_script = "uid://bww2iy4wjypyl"
+
+[node name="MouseSlotBehavior" type="Node" parent="Behavior"]
+script = ExtResource("4_21ml6")
+metadata/_custom_type_script = "uid://bvbfxbqa5j6s3"
 
 [node name="Area2D" type="Area2D" parent="."]
+script = ExtResource("5_0uwf5")
+metadata/_custom_type_script = "uid://cr60xh0vb6ww1"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("RectangleShape2D_so0dm")
-debug_color = Color(0.14787018, 0.5960515, 0.677478, 0.41960785)
+debug_color = Color(0.7684466, 0.44492945, 5.7756904e-07, 0.41960785)
 
 [node name="Visuals" type="Node2D" parent="."]
 
-[node name="Panel" type="Panel" parent="Visuals"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -150.0
-offset_right = 100.0
-offset_bottom = 150.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
+[node name="Panel" type="Sprite2D" parent="Visuals"]
+material = SubResource("ShaderMaterial_g75y7")
+texture = ExtResource("6_jke6h")
 metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="Visuals"]
@@ -47,5 +67,5 @@ vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [connection signal="input_event" from="Area2D" to="." method="_on_area_input_event"]
-[connection signal="mouse_entered" from="Area2D" to="." method="_on_area_mouse_entered"]
-[connection signal="mouse_exited" from="Area2D" to="." method="_on_area_mouse_exited"]
+[connection signal="mouse_entered" from="Area2D" to="." method="_on_area2d_mouse_entered"]
+[connection signal="mouse_exited" from="Area2D" to="." method="_on_area2d_mouse_exited"]

@@ -10,7 +10,6 @@ class_name TokenViz
 @export_group("Table")
 @export var cell_count: Vector2i
 # SceneTree引用
-@onready var area: DropTokenArea2D = $Area2D
 @onready var title: Label = $Visuals/Label
 @onready var front_image: TextureRect = $Visuals/Image
 @onready var background: Sprite2D = $Visuals/Background
@@ -41,10 +40,6 @@ func _ready() -> void:
 #endregion
 
 #region 实现父类抽象方法
-## 获取 Area2D 节点
-func _get_area() -> Area2D:
-	return area
-
 ## 获取背景节点
 func _get_background() -> Node2D:
 	return background

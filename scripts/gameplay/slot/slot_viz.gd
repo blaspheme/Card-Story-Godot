@@ -6,7 +6,15 @@ class_name SlotViz
 #region 导出属性
 ## 槽位数据资源
 @export var slot_data: SlotData
+#endregion
 
+#region 节点引用
+@onready var background: Sprite2D = $Visuals/Panel
+@onready var mat: ShaderMaterial = $Visuals/Panel.material
+@onready var title_label: Label = $Visuals/Label
+#endregion
+
+#region 属性
 ## 是否自动抓取符合条件的卡片（从全局桌面）
 var grab: bool = false
 
@@ -15,12 +23,6 @@ var card_lock: bool = false
 
 ## 是否为首个槽位（移除卡片时触发特殊逻辑）
 var first_slot: bool = false
-
-# ===============================
-# 节点引用
-# ===============================
-@onready var area: Area2D = $Area2D
-@onready var title_label: Label = $Visuals/Label
 
 # ===============================
 # 私有属性
@@ -57,7 +59,9 @@ signal slot_clicked(slot_viz: SlotViz)
 # ===============================
 func _ready() -> void:
 	title_label.text = slot_data.label.get_text()
-	
+	_init_drag_system()
+	if area:
+		area.dropped.connect(_on_drop)
 	# 获取父 ActWindow（如果存在）
 	_act_window = _find_act_window()
 
@@ -67,10 +71,20 @@ func _exit_tree() -> void:
 	if _grab_listener_id != -1:
 		EventBus.unsubscribe("card_in_play", _grab_listener_id)
 
-# ===============================
-# 槽位管理方法
-# ===============================
 
+#region 实现父类抽象方法
+## 获取背景节点
+func _get_background() -> Node2D:
+	return background
+
+## 获取材质
+func _get_material() -> ShaderMaterial:
+	return mat
+#endregion
+
+
+
+#region 槽位管理方法
 ## 打开槽位
 func open_slot() -> void:
 	visible = true
@@ -120,10 +134,9 @@ func act_grab() -> void:
 			slot_card(card)
 			return
 
-# ===============================
-# 卡片插入/移除逻辑
-# ===============================
+#endregion
 
+#region 卡片插入/移除逻辑
 ## 尝试插入卡片
 func try_slot_card(card: CardViz) -> bool:
 	if not visible or card == null:
@@ -136,14 +149,13 @@ func try_slot_card(card: CardViz) -> bool:
 	if _slotted_card == null:
 		slot_card(card)
 		return true
-	
 	# 槽位已有卡且未锁定，替换
 	elif not card_lock:
 		var old_card = unslot_card()
-		_return_card_to_table(old_card)
+		Manager.GM.table.return_to_table(old_card)
+		NodeUtils.set_node_and_area2d_active(old_card, true)
 		slot_card(card)
 		return true
-	
 	return false
 
 ## 插入卡片（完整流程）
@@ -151,39 +163,35 @@ func slot_card(card: CardViz) -> void:
 	if card == null:
 		return
 	
-	# 如果是堆叠卡，只取顶部一张
-	var card_to_slot = card
-	if card.has_method("yield_card"):
-		card_to_slot = card.yield_card()
+	# 如果是堆叠卡，弹出一张卡牌
+	var card_to_slot = card.yield_card()
+	# 如果弹出的卡与原卡不同，将原卡退回桌面
+	if card.card_data != card_to_slot.card_data:
+		Manager.GM.table.return_to_table(card)
 	
+	NodeUtils.set_node_and_area2d_active(card_to_slot, true)
+
 	# 逻辑插入
 	slot_card_logical(card_to_slot)
 	
 	# 物理插入
 	slot_card_physical(card_to_slot)
-	
-	# 如果弹出的卡与原卡不同，将原卡退回桌面
-	if card != card_to_slot:
-		_return_card_to_table(card)
+
 
 ## 逻辑插入：更新数据、添加 fragments
 func slot_card_logical(card: CardViz) -> void:
 	if card == null or slot_data == null:
 		return
 	
-	_slotted_card = card
-	
 	# 将 slot 的 fragments 添加到 ActWindow
-	if _act_window != null and _act_window.has_method("add_fragment"):
+	if _act_window != null:
 		for frag in slot_data.fragments:
 			_act_window.add_fragment(frag)
 	
 	# 标记卡为非自由状态
 	if card_lock:
-		if card.has_method("set_interactive"):
-			card.set_interactive(false)
-		# TODO: CardViz 需要添加 is_free 属性（free 是 GDScript 保留字）
-		# card.is_free = false
+		card.interactive = false
+		card.free = false
 	
 	# 发送信号
 	card_slotted.emit(card)
@@ -194,13 +202,8 @@ func slot_card_physical(card: CardViz) -> void:
 		return
 	
 	# Parent 到槽位节点
-	if card.get_parent() != self:
-		card.reparent(self)
-	
+	card.reparent(self)
 	card.position = Vector2.ZERO
-	
-	# 如果 visuals 隐藏，同时隐藏卡片
-	card.visible = false
 
 ## 移除卡片
 func unslot_card() -> CardViz:
@@ -246,13 +249,7 @@ func accepts_card(card: CardViz) -> bool:
 	if slot_data == null or card == null:
 		return false
 	
-	# 如果 slot_data 有 accepts_all 标志（从 SlotData 读取）
-	if slot_data.accept_all:
-		return true
-	
-	# TODO: 实现完整的规则检查（required/essential/forbidden fragments、card_rule 等）
-	# 这里先简化为始终返回 true，后续按 SlotData 完善
-	return true
+	return slot_data.accepts_card(card)
 
 # ===============================
 # 自动抓取逻辑
@@ -312,17 +309,18 @@ func hide_slot() -> void:
 
 ## Area2D 输入事件（处理拖拽放置）
 func _on_area_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
-	# 处理点击事件
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_on_slot_clicked()
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
+			# 开始拖拽处理
+			handle_mouse_input(mouse_event)
 
-func _on_area_mouse_entered() -> void:
-	# 可选：鼠标进入时的反馈
-	pass
+func _on_area2d_mouse_entered() -> void:
+	super._on_area_mouse_entered()
 
-func _on_area_mouse_exited() -> void:
-	# 可选：鼠标离开时的反馈
-	pass
+func _on_area2d_mouse_exited() -> void:
+	super._on_area_mouse_exited()
+
 
 ## 槽位被点击
 func _on_slot_clicked() -> void:
@@ -351,11 +349,6 @@ func _find_act_window():
 
 ## 获取所有卡片（从 GameManager 或 Table）
 func _get_all_cards() -> Array:
-	if Manager.GM.has_method("get_all_cards"):
-		return Manager.GM.get_all_cards()
+	if Manager.GM:
+		return Manager.GM.table.get_cards()
 	return []
-
-## 将卡片退回桌面
-func _return_card_to_table(card: CardViz) -> void:
-	if card != null and Manager.GM.has_method("return_to_table"):
-		Manager.GM.return_to_table(card)

@@ -21,11 +21,12 @@ shader_parameter/border_visibility = 0.0
 shader_parameter/gradient_intensity = 3.0
 shader_parameter/gradient_steps = 10.0
 
-[node name="TokenViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior")]
+[node name="TokenViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior", "area")]
 script = ExtResource("1_epmlw")
 token_data = ExtResource("2_586nv")
 highlight_behavior = NodePath("Behavior/HighlightTokenBehavior")
 mouse_behavior = NodePath("Behavior/MouseTokenBehavior")
+area = NodePath("Area2D")
 
 [node name="Behavior" type="Node" parent="."]
 

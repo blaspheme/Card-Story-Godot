@@ -63,6 +63,13 @@ func add_held_fragment(_frag: HeldFragmentData) -> void: adjust_fragment(_frag.f
 
 func remove_held_fragment(_frag: HeldFragmentData) -> void: adjust_fragment(_frag.fragment, -_frag.count)
 
+func count_held_fragment(_frag: HeldFragmentData, _only_free: bool=false) -> int: 
+	if _frag != null:
+		return count_fragment(_frag.fragment, _only_free)
+	else:
+		return 0
+
+
 #endregion
 
 #region Aspect 增删改查

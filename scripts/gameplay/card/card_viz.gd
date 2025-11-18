@@ -12,7 +12,6 @@ class_name CardViz
 
 #region 变量
 ## SceneTree引用
-@onready var area: DropCardArea2D = $Area2D
 @onready var frag_tree: FragTree = $Root
 @onready var visuals: Node2D = $Visuals
 @onready var title_label: Label = $Visuals/Front/VBoxContainer/Title
@@ -92,10 +91,6 @@ func _on_create_card(_card_viz: CardViz) -> void:
 #endregion
 
 #region 实现父类抽象方法：单击、拖拽、点击事件
-## 获取 Area2D 节点
-func _get_area() -> Area2D:
-	return area
-
 ## 获取背景节点
 func _get_background() -> Node2D:
 	return background
