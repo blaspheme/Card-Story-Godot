@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://ddaduqkgrarml"]
+[gd_scene load_steps=11 format=3 uid="uid://ddaduqkgrarml"]
 
 [ext_resource type="Script" uid="uid://dqcrtn7wnmpc1" path="res://scripts/gameplay/act/act_window.gd" id="1_7wm8j"]
 [ext_resource type="Script" uid="uid://j27b5u5j4pej" path="res://scripts/gameplay/act/act_logic.gd" id="2_sb48q"]
@@ -7,8 +7,25 @@
 [ext_resource type="PackedScene" uid="uid://bb82rjto665im" path="res://scenes/gameplay/widgets/timer.tscn" id="4_0x7c6"]
 [ext_resource type="PackedScene" uid="uid://bl2btp6irrfcg" path="res://scenes/gameplay/viz/slot_viz.tscn" id="5_t0h1x"]
 
-[node name="ActWindow" type="Node2D"]
+[sub_resource type="Gradient" id="Gradient_sb48q"]
+offsets = PackedFloat32Array(0, 0.9880383, 1)
+colors = PackedColorArray(0.42778334, 0.29619002, 0.11311074, 1, 0.6411483, 0.6411483, 0.6411483, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_o3j1h"]
+gradient = SubResource("Gradient_sb48q")
+
+[sub_resource type="Gradient" id="Gradient_o3j1h"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_a0is3"]
+gradient = SubResource("Gradient_o3j1h")
+
+[node name="ActWindow" type="Node2D" node_paths=PackedStringArray("visuals", "label_text", "text_display", "idle_slots", "run_slots")]
 script = ExtResource("1_7wm8j")
+visuals = NodePath("Visuals")
+label_text = NodePath("Visuals/Bar/Label")
+text_display = NodePath("Visuals/Foreground/RichTextLabel")
+idle_slots = [NodePath("Slots/IdleSlots/SlotViz"), NodePath("Slots/IdleSlots/SlotViz2"), NodePath("Slots/IdleSlots/SlotViz3"), NodePath("Slots/IdleSlots/SlotViz4"), NodePath("Slots/IdleSlots/SlotViz5"), NodePath("Slots/IdleSlots/SlotViz6")]
+run_slots = [NodePath("Slots/RunSlots/SlotViz")]
 
 [node name="ActLogic" type="Node" parent="."]
 script = ExtResource("2_sb48q")
@@ -18,33 +35,57 @@ script = ExtResource("3_sb48q")
 
 [node name="Visuals" type="Node2D" parent="."]
 
+[node name="Background" type="TextureRect" parent="Visuals"]
+offset_right = 968.0
+offset_bottom = 698.0
+texture = SubResource("GradientTexture1D_o3j1h")
+
+[node name="Bar" type="TextureRect" parent="Visuals"]
+offset_left = -24.0
+offset_right = 1007.0
+offset_bottom = 56.0
+texture = SubResource("GradientTexture1D_a0is3")
+
+[node name="Label" type="Label" parent="Visuals/Bar"]
+layout_mode = 0
+offset_right = 164.0
+offset_bottom = 57.0
+text = "Label"
+
+[node name="CloseButton" type="Button" parent="Visuals/Bar"]
+layout_mode = 0
+offset_left = 979.0
+offset_right = 1032.0
+offset_bottom = 57.0
+text = "❌"
+
 [node name="Foreground" type="Control" parent="Visuals"]
 layout_mode = 3
 anchors_preset = 0
+offset_top = 36.0
 offset_right = 900.0
 offset_bottom = 600.0
 
 [node name="Timer" parent="Visuals/Foreground" instance=ExtResource("4_0x7c6")]
 position = Vector2(280, 297)
 
-[node name="Background" type="Panel" parent="Visuals"]
-offset_right = 900.0
-offset_bottom = 650.0
-
-[node name="Control" type="Control" parent="Visuals"]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="RichTextLabel" type="RichTextLabel" parent="Visuals/Foreground"]
+layout_mode = 0
+offset_left = 550.0
+offset_top = 40.0
+offset_right = 940.0
+offset_bottom = 587.0
+text = "描述"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Visuals"]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 604.0
-offset_right = 110.0
-offset_bottom = 652.0
+offset_left = 853.0
+offset_top = 646.0
+offset_right = 964.0
+offset_bottom = 693.0
 grow_horizontal = 2
 grow_vertical = 0
 
@@ -54,7 +95,7 @@ text = "OK"
 
 [node name="CollectButton" type="Button" parent="Visuals/HBoxContainer"]
 layout_mode = 2
-text = "Cancel"
+text = "Collect"
 
 [node name="ResultsLane" type="Node" parent="."]
 script = ExtResource("2_x0mbc")
@@ -63,34 +104,33 @@ script = ExtResource("2_x0mbc")
 script = ExtResource("3_sb48q")
 
 [node name="Slots" type="Node" parent="."]
+script = ExtResource("3_sb48q")
+free = true
 
 [node name="IdleSlots" type="Node" parent="Slots"]
 
 [node name="SlotViz" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
-position = Vector2(110, 160)
+position = Vector2(102, 214)
 scale = Vector2(0.8, 0.8)
 
 [node name="SlotViz2" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
-position = Vector2(280, 160)
+position = Vector2(272, 214)
 scale = Vector2(0.8, 0.8)
 
 [node name="SlotViz3" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
-position = Vector2(450, 160)
+position = Vector2(442, 214)
 scale = Vector2(0.8, 0.8)
 
 [node name="SlotViz4" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
-visible = false
-position = Vector2(110, 450)
+position = Vector2(102, 504)
 scale = Vector2(0.8, 0.8)
 
 [node name="SlotViz5" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
-visible = false
-position = Vector2(280, 450)
+position = Vector2(272, 504)
 scale = Vector2(0.8, 0.8)
 
 [node name="SlotViz6" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
-visible = false
-position = Vector2(450, 450)
+position = Vector2(442, 504)
 scale = Vector2(0.8, 0.8)
 
 [node name="RunSlots" type="Node" parent="Slots"]
@@ -99,3 +139,5 @@ scale = Vector2(0.8, 0.8)
 visible = false
 position = Vector2(280, 300)
 scale = Vector2(0.8, 0.8)
+
+[connection signal="pressed" from="Visuals/Bar/CloseButton" to="." method="close"]

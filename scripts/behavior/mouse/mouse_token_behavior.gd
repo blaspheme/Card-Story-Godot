@@ -17,7 +17,6 @@ func can_drag(viz: Viz) -> bool:
 	# 始終允许
 	return true
 
-
-#region Drop操作，在CardViz中连接信号
-
-#endregion
+func handle_single_click(viz: Viz) -> void:
+	var _token_viz = viz as TokenViz
+	_token_viz.act_window.bring_up()

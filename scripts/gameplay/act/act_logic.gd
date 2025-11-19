@@ -5,7 +5,7 @@ class_name ActLogic
 # Act 执行逻辑：管理 Act 链、Slot 开关、规则执行、结果处理
 # ===============================
 
-# 组件引用
+#region 属性
 @onready var frag_tree: FragTree = $"../Root"
 @onready var act_window = $".." # ActWindow 是父节点
 
@@ -33,8 +33,6 @@ var label: TextData
 # 分支与调用栈
 var branch_out_act: ActData = null
 var call_stack: Array[ActData] = []
-
-#region 属性访问器
 
 var slots_frag_tree: FragTree:
 	get: return act_window.slots_frag_tree if act_window else null
@@ -65,11 +63,10 @@ func check_for_slots() -> Array[SlotData]:
 	if active_act != null:
 		# 从当前 Act 获取 slots
 		for slot in active_act.slots:
-			if slot != null:
-				slots_to_attempt.append(slot)
+			slots_to_attempt.append(slot)
 		
 		# 如果不忽略全局 slots，添加全局 slots
-		if not active_act.ignore_global_slots:
+		if active_act.ignore_global_slots == false:
 			for slot in Manager.GM.slot_sos:
 				if slot != null and slot.all_acts:
 					slots_to_attempt.append(slot)
@@ -81,7 +78,7 @@ func check_for_slots() -> Array[SlotData]:
 		# 从 cards 收集 slots
 		for card_viz in frag_tree.cards():
 			if card_viz.card != null:
-				for slot in card_viz.card.slots:
+				for slot in card_viz.card_data.slots:
 					if slot != null:
 						slots_to_attempt.append(slot)
 		
@@ -108,7 +105,7 @@ func check_for_slots() -> Array[SlotData]:
 	
 	return slots_to_open
 #endregion
-
+	
 #region Act 执行流程
 ## 运行指定的 Act
 func run_act(act: ActData) -> void:
@@ -140,8 +137,8 @@ func run_act(act: ActData) -> void:
 	
 	# 检查是否需要计时
 	if act.time > 0:
-		token_viz.timer.start_timer(act.time, on_time_up)
-		token_viz.show_timer()
+		token_viz.token_timer.start_timer(act.time, on_time_up)
+		token_viz.show_timer(true)
 		act_window.apply_status(GameEnums.ActStatus.RUNNING)
 	else:
 		setup_act_results()

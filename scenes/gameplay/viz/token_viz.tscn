@@ -21,12 +21,13 @@ shader_parameter/border_visibility = 0.0
 shader_parameter/gradient_intensity = 3.0
 shader_parameter/gradient_steps = 10.0
 
-[node name="TokenViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior", "area")]
+[node name="TokenViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior", "area", "_click_timer")]
 script = ExtResource("1_epmlw")
 token_data = ExtResource("2_586nv")
 highlight_behavior = NodePath("Behavior/HighlightTokenBehavior")
 mouse_behavior = NodePath("Behavior/MouseTokenBehavior")
 area = NodePath("Area2D")
+_click_timer = NodePath("ClickTimer")
 
 [node name="Behavior" type="Node" parent="."]
 
@@ -76,6 +77,9 @@ material = SubResource("ShaderMaterial_586nv")
 texture = ExtResource("4_2m7xr")
 
 [node name="Timer" parent="." instance=ExtResource("5_rfep7")]
+
+[node name="ClickTimer" type="Timer" parent="."]
+wait_time = 0.3
 
 [connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
 [connection signal="mouse_entered" from="Area2D" to="." method="_on_area_2d_mouse_entered"]

@@ -4,31 +4,24 @@ class_name TokenTimer
 ## 游戏计时器组件
 ## 提供计时显示、进度条、事件回调和存档功能
 
-# ===============================
-# 信号定义
-# ===============================
+@export var _tick_timer: Timer
+
+#region 信号定义
 ## 计时器时间到达时发出
 signal time_up
+#endregion
 
-# ===============================
-# 导出属性
-# ===============================
-## Tick更新间隔（秒）
-@export var tick_interval: float = 0.01
-
-# ===============================
-# 私有属性
-# ===============================
+#region 私有属性
 var _duration: float = 10.0
 var _elapsed_time: float = 0.0
 var _following_timer: TokenTimer = null
 var _enabled: bool = false
+#endregion
 
 # 节点引用（在_ready中初始化）
 @onready var _text_label: Label = $Label
 @onready var _circular_progress: ColorRect = $CircularProgress
 @onready var _circular_material: ShaderMaterial = $CircularProgress.material
-var _tick_timer: Timer
 
 # 回调函数列表（替代Unity的UnityEvent）
 var _time_up_callbacks: Array[Callable] = []
@@ -55,13 +48,7 @@ var duration: float:
 # ===============================
 func _ready() -> void:
 
-	# 创建并配置内部tick计时器
-	_tick_timer = Timer.new()
-	_tick_timer.wait_time = tick_interval
-	_tick_timer.one_shot = false
-	add_child(_tick_timer)
-	_tick_timer.connect("timeout", Callable(self, "_on_tick"))
-	
+
 	# 初始化显示
 	if _circular_material:
 		_circular_material.set_shader_parameter("progress", 0.0)

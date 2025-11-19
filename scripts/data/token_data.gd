@@ -8,7 +8,7 @@ extends Resource
 @export var color : Color = Color.WHITE
 
 @export_group("Description")
-@export_multiline var description : String
+@export var description : TextData
 @export var text_rules : Array[RuleData]
 
 @export_group("Slot")

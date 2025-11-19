@@ -71,6 +71,13 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 			handle_mouse_input(mouse_event)
 #endregion
 
+#region 其他功能
+func show_timer(p:bool = true):
+	visible = p
+
+#endregion
+
+
 #region 保存和加载数据逻辑
 func save_state() -> TokenVizState:
 	var _save = TokenVizState.new()

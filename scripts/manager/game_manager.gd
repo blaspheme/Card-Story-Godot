@@ -90,7 +90,7 @@ func close_window(_window: ActWindow) -> void:
 
 func open_window_method(_window: ActWindow) -> void:
 	if open_window != _window:
-		if is_instance_valid(open_window):
+		if open_window != null:
 			open_window.close()
 		open_window = _window
 

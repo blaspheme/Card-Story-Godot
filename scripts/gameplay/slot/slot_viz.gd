@@ -58,12 +58,12 @@ signal slot_clicked(slot_viz: SlotViz)
 # 生命周期方法
 # ===============================
 func _ready() -> void:
-	title_label.text = slot_data.label.get_text()
+	load_slot(slot_data)
 	_init_drag_system()
 	if area:
 		area.dropped.connect(_on_drop)
 	# 获取父 ActWindow（如果存在）
-	_act_window = _find_act_window()
+	_act_window = NodeUtils.get_parent_of_type(self, ActWindow)
 
 
 func _exit_tree() -> void:
@@ -87,12 +87,12 @@ func _get_material() -> ShaderMaterial:
 #region 槽位管理方法
 ## 打开槽位
 func open_slot() -> void:
-	visible = true
+	NodeUtils.set_node_and_area2d_active(self, true)
 	refresh()
 
 ## 关闭槽位
 func close_slot() -> void:
-	visible = false
+	NodeUtils.set_node_and_area2d_active(self, false)
 	slot_data = null
 	
 	# 移除抓取监听
@@ -116,6 +116,15 @@ func refresh() -> void:
 	elif slot_data and slot_data.grab_from_window and _slotted_card == null:
 		# 从 ActWindow 内部抓取
 		act_grab()
+
+func load_slot(slot: SlotData) -> void:
+	if slot == null:
+		return
+	slot_data = slot
+	title_label.text = slot.label.get_text()
+	grab = slot.grab_from_global
+	card_lock = slot.card_lock
+
 
 ## 从 ActWindow 内部抓取符合条件的卡片
 func act_grab() -> void:
@@ -158,7 +167,7 @@ func try_slot_card(card: CardViz) -> bool:
 		return true
 	return false
 
-## 插入卡片（完整流程）
+## 插入卡片
 func slot_card(card: CardViz) -> void:
 	if card == null:
 		return
@@ -170,6 +179,7 @@ func slot_card(card: CardViz) -> void:
 		Manager.GM.table.return_to_table(card)
 	
 	NodeUtils.set_node_and_area2d_active(card_to_slot, true)
+	_slotted_card = card
 
 	# 逻辑插入
 	slot_card_logical(card_to_slot)
@@ -338,14 +348,6 @@ func _on_slot_clicked() -> void:
 # 辅助方法
 # ===============================
 
-## 查找父 ActWindow
-func _find_act_window():
-	var parent = get_parent()
-	while parent != null:
-		if parent.has_method("add_fragment") and parent.has_method("remove_fragment"):
-			return parent
-		parent = parent.get_parent()
-	return null
 
 ## 获取所有卡片（从 GameManager 或 Table）
 func _get_all_cards() -> Array:

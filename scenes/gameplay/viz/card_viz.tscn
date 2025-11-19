@@ -23,12 +23,14 @@ shader_parameter/border_visibility = 0.0
 shader_parameter/gradient_intensity = 3.0
 shader_parameter/gradient_steps = 10.0
 
-[node name="CardViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior", "area")]
+[node name="CardViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior", "area", "_click_timer")]
+scale = Vector2(0.7, 0.7)
 script = ExtResource("1_fi7n1")
 card_data = ExtResource("2_iqxif")
 highlight_behavior = NodePath("Behavior/HighlightCardBehavior")
 mouse_behavior = NodePath("Behavior/MouseCardBehavior")
 area = NodePath("Area2D")
+_click_timer = NodePath("ClickTimer")
 
 [node name="Behavior" type="Node" parent="."]
 
@@ -122,6 +124,9 @@ text = "999"
 horizontal_alignment = 1
 vertical_alignment = 1
 script = ExtResource("7_fi7n1")
+
+[node name="ClickTimer" type="Timer" parent="."]
+wait_time = 0.3
 
 [connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
 [connection signal="mouse_entered" from="Area2D" to="." method="_on_area_2d_mouse_entered"]

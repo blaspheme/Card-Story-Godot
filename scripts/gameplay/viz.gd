@@ -31,12 +31,12 @@ var drag_offset := Vector2.ZERO
 var original_z_index: int = 0
 var dragging_plane: Node
 
-## 点击检测属性
-var _click_timer: Timer = null
+@export_group("点击检测计时器")
+@export var _click_timer: Timer
 var _click_count: int = 0
-var _double_click_time: float = 0.3  # 双击时间间隔（秒）
 var _last_click_position: Vector2 = Vector2.ZERO
-var _click_threshold: float = 5.0  # 判定为同一位置的像素阈值
+## 判定为同一位置的像素阈值，双击检测
+@export var _click_threshold: float = 5.0
 
 ## 缓存引用（由子类在 _ready 中初始化）
 var _background: Node2D
@@ -150,18 +150,11 @@ func _init_drag_system() -> void:
 	original_z_index = z_index
 	
 	# 初始化点击检测计时器
-	_init_click_timer()
-	
+	if _click_timer != null:
+		_click_timer.timeout.connect(_on_click_timeout)
+
 	# 默认不处理输入（只在拖拽时启用）
 	set_process_input(false)
-
-## 初始化点击检测计时器
-func _init_click_timer() -> void:
-	_click_timer = Timer.new()
-	_click_timer.wait_time = _double_click_time
-	_click_timer.one_shot = true
-	_click_timer.timeout.connect(_on_click_timeout)
-	add_child(_click_timer)
 #endregion
 
 #region 动画方法
@@ -264,7 +257,7 @@ func _handle_click_detection(click_position: Vector2) -> void:
 ## 点击计时器超时（确认为单击）
 func _on_click_timeout() -> void:
 	if _click_count == 1:
-		if mouse_behavior != null:
+		if mouse_behavior != null and not is_dragging:
 			mouse_behavior.handle_single_click(self)
 	_click_count = 0
 
@@ -361,7 +354,7 @@ func _place_on_nearest_array_table() -> void:
 
 ## Drop 信号连接类， area 是 target 的area
 func _on_drop(dragged, target) -> void:
-	var dragged_viz = dragged.get_parent() as Viz
+	var dragged_viz = dragged.get_parent()
 	if dragged_viz is CardViz:
 		area.on_card_drop(dragged)
 	if dragged_viz is TokenViz:

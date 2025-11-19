@@ -1,7 +1,6 @@
-[gd_scene load_steps=10 format=3 uid="uid://bl2btp6irrfcg"]
+[gd_scene load_steps=9 format=3 uid="uid://bl2btp6irrfcg"]
 
 [ext_resource type="Script" uid="uid://ciraeenicj366" path="res://scripts/gameplay/slot/slot_viz.gd" id="1_40xr8"]
-[ext_resource type="Resource" uid="uid://bjb87p4l62gad" path="res://resources/data/slot/hit.tres" id="2_r56d6"]
 [ext_resource type="Script" uid="uid://bww2iy4wjypyl" path="res://scripts/behavior/highlight/highlight_slot_behavior.gd" id="3_82hba"]
 [ext_resource type="Script" uid="uid://bvbfxbqa5j6s3" path="res://scripts/behavior/mouse/mouse_slot_behavior.gd" id="4_21ml6"]
 [ext_resource type="Script" uid="uid://cr60xh0vb6ww1" path="res://scripts/behavior/drop/drop_slot_area2d.gd" id="5_0uwf5"]
@@ -19,12 +18,12 @@ shader_parameter/border_visibility = 0.0
 shader_parameter/gradient_intensity = 3.0
 shader_parameter/gradient_steps = 10.0
 
-[node name="SlotViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior", "area")]
+[node name="SlotViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior", "area", "_click_timer")]
 script = ExtResource("1_40xr8")
-slot_data = ExtResource("2_r56d6")
 highlight_behavior = NodePath("Behavior/HighlightSlotBehavior")
 mouse_behavior = NodePath("Behavior/MouseSlotBehavior")
 area = NodePath("Area2D")
+_click_timer = NodePath("ClickTimer")
 
 [node name="Behavior" type="Node" parent="."]
 
@@ -65,6 +64,9 @@ text = "Title"
 horizontal_alignment = 1
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
+
+[node name="ClickTimer" type="Timer" parent="."]
+wait_time = 0.3
 
 [connection signal="input_event" from="Area2D" to="." method="_on_area_input_event"]
 [connection signal="mouse_entered" from="Area2D" to="." method="_on_area2d_mouse_entered"]

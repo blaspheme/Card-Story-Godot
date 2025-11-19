@@ -6,9 +6,10 @@ class_name ActWindow
 # ===============================
 
 #region 场景树引用
-@onready var visuals: Node2D = $Visuals
-@onready var label_text: Label = $Visuals/Label
-@onready var text_display: RichTextLabel = $Visuals/Text
+@export_group("Layout")
+@export var visuals: Node2D
+@export var label_text: Label
+@export var text_display: RichTextLabel
 @onready var slots_frag: FragTree = $SlotsFragTree
 @onready var idle_slots_container: Node = $IdleSlots
 @onready var run_slots_container: Node = $RunSlots
@@ -19,9 +20,8 @@ class_name ActWindow
 @onready var ok_button: Button = $Visuals/HBoxContainer/OKButton
 @onready var collect_button: Button = $Visuals/HBoxContainer/CancelButton
 @onready var act_logic: ActLogic = $ActLogic
-#endregion
 
-#region 导出变量
+@export_group("Slots")
 @export var idle_slots: Array[SlotViz] = []
 @export var run_slots: Array[SlotViz] = []
 #endregion
@@ -379,11 +379,9 @@ func show_window() -> void:
 	if visuals:
 		visuals.visible = true
 	for slot in idle_slots:
-		if slot and slot.has_method("show"):
-			slot.show()
+		slot.show()
 	for slot in run_slots:
-		if slot and slot.has_method("show"):
-			slot.show()
+		slot.show()
 	if result_lane and result_lane.has_method("show"):
 		result_lane.show()
 
@@ -429,23 +427,20 @@ func return_cards_to_table() -> void:
 	for card_slot in idle_slots:
 		if card_slot and card_slot.slotted_card:
 			var card_viz = card_slot.unslot_card()
-			if card_viz and Manager.GM and Manager.GM.table and Manager.GM.table.has_method("return_to_table"):
+			if card_viz and Manager.GM and Manager.GM.table:
 				Manager.GM.table.return_to_table(card_viz)
 
 ## 关闭 Slots 列表
 func close_slots(slot_list: Array[SlotViz]) -> void:
 	for slot_viz in slot_list:
-		if slot_viz and slot_viz.has_method("close_slot"):
-			slot_viz.close_slot()
+		slot_viz.close_slot()
 
 ## 打开一个 Slot
 func open_slot(slot: SlotData, slot_list: Array[SlotViz]) -> void:
 	for slot_viz in slot_list:
 		if slot_viz and not slot_viz.visible:
-			if slot_viz.has_method("load_slot"):
-				slot_viz.load_slot(slot)
-			if slot_viz.has_method("open_slot"):
-				slot_viz.open_slot()
+			slot_viz.load_slot(slot)
+			slot_viz.open_slot()
 			break
 
 ## 获取匹配的 Slots
