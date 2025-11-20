@@ -53,10 +53,7 @@ func _ready() -> void:
 			frag_tree = frag_trees[0] as FragTree
 	_update_grid_corner()
 	queue_redraw()
-	
-	## 连接Drop信号
-	if area:
-		area.dropped.connect(_on_drop)
+
 
 func _draw() -> void:
 	if not show_grid:

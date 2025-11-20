@@ -205,8 +205,8 @@ func set_all_time(time: float) -> void:
 #endregion
 
 #region 保存&加载
-func save_state() -> void:
-	var _save = GameManagerState.new();
-	_save.save(self)
+#func save_state() -> void:
+	#var _save = GameManagerState.new();
+	#_save.save(self)
 
 #endregion

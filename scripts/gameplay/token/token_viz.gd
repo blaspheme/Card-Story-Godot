@@ -2,6 +2,11 @@ extends Viz
 class_name TokenViz
 
 #region 参数
+@export_group("Layout")
+@export var result_counter_go: Node2D
+@export var result_counter_text: Label
+@export var token_timer: TokenTimer
+
 @export_group("Token")
 @export var token_data: TokenData
 @export var auto_play: ActData
@@ -14,7 +19,7 @@ class_name TokenViz
 @onready var front_image: TextureRect = $Visuals/Image
 @onready var background: Sprite2D = $Visuals/Background
 @onready var mat: ShaderMaterial = $Visuals/Background.material
-@onready var token_timer: TokenTimer = $Timer
+
 
 var act_window: ActWindow
 var result_count: int
@@ -24,17 +29,20 @@ var result_count: int
 func _ready() -> void:
 	load_token(token_data)
 	_init_drag_system()
-	token_timer.start_timer(5)
-	if area:
-		area.dropped.connect(_on_drop)
+	token_timer.start_timer(10)
+	if collision_area:
+		collision_area.dropped.connect(_on_drop)
 	
 	if Manager.GM:
 		dragging_plane = Manager.GM.card_drag_plane
+		
 		if act_window == null:
 			act_window = Manager.GM.create_window()
-
+			act_window.load_token(self)
+			act_window.act_logic.force_rule_func(init_rule)
+			show_timer(false)
 		Manager.GM.add_token(self)
-
+	
 	# 尝试将卡片放置到最近的 ArrayTable
 	_place_on_nearest_array_table()
 #endregion
@@ -72,11 +80,32 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) 
 #endregion
 
 #region 其他功能
-func show_timer(p:bool = true):
-	visible = p
+func show_timer(p: bool = true):
+	token_timer.visible = p
+
+func set_result_count(_count: int) -> void:
+	result_count = _count
+	result_counter_text.text = str(_count)
+	result_counter_go.visible = result_count > 0
+
+func grab(_card_viz: CardViz) -> bool:
+	if _card_viz.free:
+		var _target = act_window.position if act_window.open else position
+		_card_viz.grab(_target, _on_start, _on_complete)
+		return true
+	return false
 
 #endregion
 
+# 回调：开始时把卡片父级到窗口并显示，完成时隐藏卡片
+func _on_start(x: CardViz):
+	if x == null:
+		return
+	x.parent_to(act_window)
+	x.show_card()
+
+func _on_complete(x: CardViz):
+	x.hide_card()
 
 #region 保存和加载数据逻辑
 func save_state() -> TokenVizState:

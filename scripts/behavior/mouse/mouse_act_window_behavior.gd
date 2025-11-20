@@ -1,5 +1,5 @@
 extends MouseBehavior
-class_name MouseTokenBehavior
+class_name MouseActWindowBehavior
 
 ## 开始拖拽
 @warning_ignore("unused_parameter")
@@ -9,14 +9,23 @@ func on_begin_drag(viz: Viz) -> void:
 ## 结束拖拽
 @warning_ignore("unused_parameter")
 func on_end_drag(viz: Viz) -> void:
-	_on_drag_release(viz.collision_area)
+	pass
 
 ## 可以拖拽
 @warning_ignore("unused_parameter")
 func can_drag(viz: Viz) -> bool:
-	# 始終允许
 	return true
 
+## 单击逻辑
+@warning_ignore("unused_parameter")
 func handle_single_click(viz: Viz) -> void:
-	var _token_viz = viz as TokenViz
-	_token_viz.act_window.bring_up()
+	pass
+
+## 双击逻辑
+@warning_ignore("unused_parameter")
+func handle_double_click(viz: Viz) -> void:
+	pass
+
+## Drag停止，进入 drop
+func _on_drag_release(dragged_owner: DropArea2D):
+	pass

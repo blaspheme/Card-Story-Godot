@@ -1,4 +1,4 @@
-extends Node2D
+extends Viz
 class_name ActWindow
 
 # ===============================
@@ -10,16 +10,16 @@ class_name ActWindow
 @export var visuals: Node2D
 @export var label_text: Label
 @export var text_display: RichTextLabel
-@onready var slots_frag: FragTree = $SlotsFragTree
-@onready var idle_slots_container: Node = $IdleSlots
-@onready var run_slots_container: Node = $RunSlots
-@onready var result_lane: Node = $ResultLane
-@onready var aspect_bar: Node = $AspectBar
-@onready var card_bar: Node = $CardBar
-@onready var timer_widget: Node = $Timer
-@onready var ok_button: Button = $Visuals/HBoxContainer/OKButton
-@onready var collect_button: Button = $Visuals/HBoxContainer/CancelButton
-@onready var act_logic: ActLogic = $ActLogic
+@export var slots_frag: FragTree
+@export var idle_slots_container: Node2D
+@export var run_slots_container: Node2D
+@export var result_lane: Node2D
+@export var aspect_bar: Node 
+@export var card_bar: Node
+@export var timer_widget: TokenTimer
+@export var ok_button: Button
+@export var collect_button: Button
+@export var act_logic: ActLogic
 
 @export_group("Slots")
 @export var idle_slots: Array[SlotViz] = []
@@ -159,8 +159,7 @@ func set_frag_memory(frag: FragmentData) -> void:
 ## 将 Slot 中的卡片移到窗口
 func parent_slot_cards_to_window() -> void:
 	for slot in slots:
-		if slot and slot.has_method("parent_card_to_window"):
-			slot.parent_card_to_window()
+		slot.parent_card_to_window()
 
 ## 高亮匹配的 Slots
 func highlight_slots(card_viz: CardViz, highlight: bool = true) -> void:
@@ -189,7 +188,7 @@ func update_slots() -> void:
 		if slot_viz and slot_viz.is_open:
 			var found_slot = null
 			for s in slots_to_open:
-				if s == slot_viz.slot:
+				if s == slot_viz.slot_data:
 					found_slot = s
 					break
 			
@@ -198,7 +197,7 @@ func update_slots() -> void:
 				slot_viz.close_slot()
 				if card_viz:
 					re_update = true
-					if Manager.GM and Manager.GM.table and Manager.GM.table.has_method("return_to_table"):
+					if Manager.GM and Manager.GM.table:
 						Manager.GM.table.return_to_table(card_viz)
 			else:
 				slots_to_open.erase(found_slot)
@@ -209,8 +208,7 @@ func update_slots() -> void:
 		update_slots()
 	else:
 		for slot_viz in slots_to_refresh:
-			if slot_viz.has_method("refresh"):
-				slot_viz.refresh()
+			slot_viz.refresh()
 		
 		for slot in slots_to_open:
 			open_slot(slot, slots)
@@ -244,7 +242,7 @@ func check() -> void:
 			
 			if count == 0:
 				status_idle()
-				if token_viz and token_viz.token and token_viz.token.dissolve:
+				if token_viz and token_viz.token_data and token_viz.token_data.dissolve:
 					token_viz.dissolve()
 					close()
 					queue_free()
@@ -279,7 +277,7 @@ func load_token(token: TokenViz) -> void:
 	if token:
 		token_viz = token
 		set_frag_memory(token.memory_fragment)
-		name = "[WINDOW] " + (token.token.resource_path if token.token else "Unknown")
+		name = "[WINDOW] " + token.token_data.resource_path.get_file().get_basename()
 
 ## 应用状态
 func apply_status(new_status: GameEnums.ActStatus) -> void:
@@ -300,7 +298,7 @@ func apply_status(new_status: GameEnums.ActStatus) -> void:
 			if token_viz:
 				token_viz.set_result_count(0)
 				if label_text:
-					label_text.text = token_viz.token.label if token_viz.token else ""
+					label_text.text = token_viz.token_data.label.get_text() if token_viz.token_data else ""
 				if text_display and act_logic:
 					text_display.text = act_logic.token_description()
 			if card_bar:
@@ -336,9 +334,9 @@ func apply_status(new_status: GameEnums.ActStatus) -> void:
 				token_viz.set_result_count(0)
 			if act_logic:
 				if label_text and act_logic.label:
-					label_text.text = act_logic.label.get_text() if act_logic.label.has_method("get_text") else str(act_logic.label)
+					label_text.text = act_logic.label if act_logic.label else act_logic.label
 				if text_display and act_logic.run_text:
-					text_display.text = act_logic.run_text.get_text() if act_logic.run_text.has_method("get_text") else str(act_logic.run_text)
+					text_display.text = act_logic.run_text if act_logic.run_text else act_logic.run_text
 			if card_bar:
 				card_bar.visible = true
 		
@@ -354,34 +352,26 @@ func apply_status(new_status: GameEnums.ActStatus) -> void:
 				collect_button.visible = true
 			if act_logic:
 				if label_text and act_logic.label:
-					label_text.text = act_logic.label.get_text() if act_logic.label.has_method("get_text") else str(act_logic.label)
+					label_text.text = act_logic.label if act_logic.label else act_logic.label
 				if text_display and act_logic.end_text:
-					text_display.text = act_logic.end_text.get_text() if act_logic.end_text.has_method("get_text") else str(act_logic.end_text)
+					text_display.text = act_logic.end_text if act_logic.end_text else act_logic.end_text
 			if card_bar:
 				card_bar.visible = false
 			check()
 
 ## 隐藏窗口
 func hide_window() -> void:
-	if visuals:
-		visuals.visible = false
+	set_active(false)
 	for slot in idle_slots:
-		if slot and slot.has_method("hide"):
-			slot.hide()
+		slot.hide_slot()
 	for slot in run_slots:
-		if slot and slot.has_method("hide"):
-			slot.hide()
+		slot.hide()
 	if result_lane and result_lane.has_method("hide"):
 		result_lane.hide()
 
 ## 显示窗口
 func show_window() -> void:
-	if visuals:
-		visuals.visible = true
-	for slot in idle_slots:
-		slot.show()
-	for slot in run_slots:
-		slot.show()
+	set_active(true)
 	if result_lane and result_lane.has_method("show"):
 		result_lane.show()
 
@@ -404,7 +394,7 @@ func force_act(act: ActData) -> void:
 #region 内部方法
 ## 尝试准备 Act
 func attempt_ready_act() -> void:
-	if not token_viz or not token_viz.token or not act_logic:
+	if not token_viz or not token_viz.token_data or not act_logic:
 		return
 	
 	ready_act = act_logic.attempt_initial_acts()
@@ -512,4 +502,25 @@ func load_state(save: Dictionary, token: TokenViz) -> void:
 	
 	if _open:
 		bring_up()
+#endregion
+
+
+#region 信号回调（连接到场景中的信号）
+## 鼠标进入逻辑（转发给父类）
+func _on_area_2d_mouse_entered() -> void:
+	_on_area_mouse_entered()
+
+## 鼠标退出逻辑（转发给父类）
+func _on_area_2d_mouse_exited() -> void:
+	_on_area_mouse_exited()
+
+## 卡牌输入逻辑
+@warning_ignore("unused_parameter")
+func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
+			# 开始拖拽处理
+			handle_mouse_input(mouse_event)
+
 #endregion

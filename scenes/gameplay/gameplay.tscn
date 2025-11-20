@@ -103,3 +103,5 @@ mouse_filter = 2
 [node name="Control" parent="UI" instance=ExtResource("14_216mg")]
 layout_mode = 1
 mouse_filter = 2
+
+[connection signal="dropped" from="Root/Table/TableArea2D" to="Root/Table" method="_on_drop"]

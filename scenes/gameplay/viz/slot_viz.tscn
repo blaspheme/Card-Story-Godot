@@ -18,12 +18,13 @@ shader_parameter/border_visibility = 0.0
 shader_parameter/gradient_intensity = 3.0
 shader_parameter/gradient_steps = 10.0
 
-[node name="SlotViz" type="Node2D" node_paths=PackedStringArray("highlight_behavior", "mouse_behavior", "area", "_click_timer")]
+[node name="SlotViz" type="Node2D" node_paths=PackedStringArray("collision_area", "highlight_behavior", "mouse_behavior", "_click_timer")]
 script = ExtResource("1_40xr8")
+collision_area = NodePath("Area2D")
 highlight_behavior = NodePath("Behavior/HighlightSlotBehavior")
 mouse_behavior = NodePath("Behavior/MouseSlotBehavior")
-area = NodePath("Area2D")
 _click_timer = NodePath("ClickTimer")
+metadata/_custom_type_script = "uid://ciraeenicj366"
 
 [node name="Behavior" type="Node" parent="."]
 

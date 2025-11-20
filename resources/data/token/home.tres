@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="TokenData" load_steps=5 format=3 uid="uid://ls1vth6pe28m"]
+[gd_resource type="Resource" script_class="TokenData" load_steps=7 format=3 uid="uid://ls1vth6pe28m"]
 
 [ext_resource type="Texture2D" uid="uid://b1nk3gvvgc0ye" path="res://reports/report_1/css/logo.png" id="1_8an28"]
 [ext_resource type="Script" uid="uid://dphe1y5kkblvy" path="res://scripts/data/token_data.gd" id="1_cwh5n"]
 [ext_resource type="Script" uid="uid://cpixo6wngxjvf" path="res://scripts/data/basic/text_data.gd" id="2_q8rai"]
+[ext_resource type="Resource" uid="uid://bjb87p4l62gad" path="res://resources/data/slot/hit.tres" id="4_q8rai"]
+[ext_resource type="Script" uid="uid://dc60x7mtd6xwq" path="res://scripts/data/rule_data.gd" id="5_f4q15"]
 
 [sub_resource type="Resource" id="Resource_f4q15"]
 script = ExtResource("2_q8rai")
@@ -14,8 +16,7 @@ script = ExtResource("1_cwh5n")
 label = SubResource("Resource_f4q15")
 image = ExtResource("1_8an28")
 color = null
-description = null
-text_rules = null
+slot = ExtResource("4_q8rai")
 dissolve = null
 unique = null
 metadata/_custom_type_script = "uid://dphe1y5kkblvy"

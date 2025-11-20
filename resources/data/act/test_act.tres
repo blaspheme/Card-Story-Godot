@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="ActData" load_steps=16 format=3 uid="uid://bovyugdgy8frl"]
+
+[ext_resource type="Script" uid="uid://yqccxg2c12gr" path="res://scripts/data/modifier/act_modifier.gd" id="1_tprej"]
+[ext_resource type="Script" uid="uid://dhv0tly304xp4" path="res://scripts/data/wrapper/act_link.gd" id="2_r7pfx"]
+[ext_resource type="Script" uid="uid://dc60x7mtd6xwq" path="res://scripts/data/rule_data.gd" id="3_naq6t"]
+[ext_resource type="Script" uid="uid://c2wxsj730ba3t" path="res://scripts/data/modifier/card_modifer.gd" id="4_w046x"]
+[ext_resource type="Script" uid="uid://crcvxasj36qi4" path="res://scripts/data/modifier/deck_modifer.gd" id="5_ljled"]
+[ext_resource type="Script" uid="uid://bhoj3oie1gjpg" path="res://scripts/data/fragment_data.gd" id="6_82g1n"]
+[ext_resource type="Script" uid="uid://c6kfqafsdoojn" path="res://scripts/data/modifier/path_modifier.gd" id="7_2ajgf"]
+[ext_resource type="Script" uid="uid://cpixo6wngxjvf" path="res://scripts/data/basic/text_data.gd" id="7_r7pfx"]
+[ext_resource type="Script" uid="uid://7co4c3ukbg26" path="res://scripts/data/act_data.gd" id="8_tos2b"]
+[ext_resource type="Script" uid="uid://cfs07cxd1cqjm" path="res://scripts/data/slot_data.gd" id="9_5rccw"]
+[ext_resource type="Script" uid="uid://dpllqqncm5tvx" path="res://scripts/data/modifier/table_modifer.gd" id="10_a1jq0"]
+[ext_resource type="Script" uid="uid://c02d6hdwx6h25" path="res://scripts/data/test_data.gd" id="11_3h7hq"]
+[ext_resource type="Resource" uid="uid://bjb87p4l62gad" path="res://resources/data/slot/hit.tres" id="11_w046x"]
+[ext_resource type="Resource" uid="uid://ls1vth6pe28m" path="res://resources/data/token/home.tres" id="13_naq6t"]
+
+[sub_resource type="Resource" id="Resource_naq6t"]
+script = ExtResource("7_r7pfx")
+text = "Teat Act"
+metadata/_custom_type_script = "uid://cpixo6wngxjvf"
+
+[resource]
+script = ExtResource("8_tos2b")
+label = SubResource("Resource_naq6t")
+token = ExtResource("13_naq6t")
+initial = true
+slots = Array[ExtResource("9_5rccw")]([ExtResource("11_w046x")])
+metadata/_custom_type_script = "uid://7co4c3ukbg26"

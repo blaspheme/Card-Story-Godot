@@ -60,8 +60,8 @@ signal slot_clicked(slot_viz: SlotViz)
 func _ready() -> void:
 	load_slot(slot_data)
 	_init_drag_system()
-	if area:
-		area.dropped.connect(_on_drop)
+	if collision_area:
+		collision_area.dropped.connect(_on_drop)
 	# 获取父 ActWindow（如果存在）
 	_act_window = NodeUtils.get_parent_of_type(self, ActWindow)
 
@@ -87,18 +87,14 @@ func _get_material() -> ShaderMaterial:
 #region 槽位管理方法
 ## 打开槽位
 func open_slot() -> void:
-	NodeUtils.set_node_and_area2d_active(self, true)
+	set_active(true)
 	refresh()
 
 ## 关闭槽位
 func close_slot() -> void:
-	NodeUtils.set_node_and_area2d_active(self, false)
+	set_active(false)
 	slot_data = null
-	
-	# 移除抓取监听
-	if grab and _grab_listener_id != -1:
-		EventBus.unsubscribe("card_in_play", _grab_listener_id)
-		_grab_listener_id = -1
+
 
 ## 刷新槽位状态（尝试自动抓取）
 func refresh() -> void:
@@ -162,7 +158,7 @@ func try_slot_card(card: CardViz) -> bool:
 	elif not card_lock:
 		var old_card = unslot_card()
 		Manager.GM.table.return_to_table(old_card)
-		NodeUtils.set_node_and_area2d_active(old_card, true)
+		old_card.set_active(true)
 		slot_card(card)
 		return true
 	return false
@@ -178,7 +174,7 @@ func slot_card(card: CardViz) -> void:
 	if card.card_data != card_to_slot.card_data:
 		Manager.GM.table.return_to_table(card)
 	
-	NodeUtils.set_node_and_area2d_active(card_to_slot, true)
+	card_to_slot.set_active(true)
 	_slotted_card = card
 
 	# 逻辑插入
@@ -303,14 +299,14 @@ func _on_card_in_play(card: CardViz) -> void:
 
 ## 显示槽位
 func show_slot() -> void:
-	visible = true
-	if _slotted_card != null and _slotted_card.has_method("show_card"):
+	set_active(true)
+	if _slotted_card != null:
 		_slotted_card.show_card()
 
 ## 隐藏槽位
 func hide_slot() -> void:
-	visible = false
-	if _slotted_card != null and _slotted_card.has_method("hide_card"):
+	set_active(false)
+	if _slotted_card != null:
 		_slotted_card.hide_card()
 
 # ===============================

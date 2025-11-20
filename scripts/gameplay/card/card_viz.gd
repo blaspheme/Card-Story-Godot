@@ -66,8 +66,8 @@ func _ready() -> void:
 		decay_timer.decay_completed.connect(_on_decay_completed)
 	
 	## 连接Drop信号
-	if area:
-		area.dropped.connect(_on_drop)
+	if collision_area:
+		collision_area.dropped.connect(_on_drop)
 	
 	# 组件赋值
 	stack_counter._parent_card = self
@@ -277,12 +277,12 @@ func _play_transform_effect() -> void:
 ## 隐藏卡牌（设置 visuals 不可见）
 func hide_card() -> void:
 	if visuals:
-		visuals.hide()
+		set_active(false)
 
 ## 显示卡牌
 func show_card() -> void:
 	if visuals:
-		visuals.show()
+		set_active(true)
 
 ## 翻转卡牌（正反面切换）
 func reverse(instant: bool = false) -> void:

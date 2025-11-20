@@ -28,7 +28,7 @@ func on_end_drag(viz: Viz) -> void:
 	# 取消高亮
 	card_viz.highlight_behavior.set_highlight(viz, false)
 	
-	_on_drag_release(card_viz.area)
+	_on_drag_release(card_viz.collision_area)
 	
 	# 重置整堆拖拽标记（必须在 _check_drop_targets 之后，因为需要用到这个标记）
 	print("[CardViz] 重置 stack_drag = false")

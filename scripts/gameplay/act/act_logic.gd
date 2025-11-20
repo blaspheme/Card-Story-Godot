@@ -6,8 +6,9 @@ class_name ActLogic
 # ===============================
 
 #region 属性
-@onready var frag_tree: FragTree = $"../Root"
-@onready var act_window = $".." # ActWindow 是父节点
+@export var frag_tree: FragTree
+## ActWindow 是父节点
+@export var act_window: ActWindow
 
 # 当前激活的 Act
 var active_act: ActData = null
@@ -26,9 +27,9 @@ var do_callback: bool = false
 var force_rule: RuleData = null
 
 # 文本缓存
-var end_text: TextData
-var run_text: TextData 
-var label: TextData
+var end_text: String
+var run_text: String
+var label: String
 
 # 分支与调用栈
 var branch_out_act: ActData = null
@@ -44,9 +45,7 @@ var token_viz: TokenViz:
 
 #region 初始化
 func _ready() -> void:
-	# 组件已通过 @onready 获取
 	if frag_tree:
-		# 设置创建卡片回调
 		frag_tree.on_create_card.connect(_on_create_card)
 
 func _on_create_card(card_viz: CardViz) -> void:
@@ -72,27 +71,23 @@ func check_for_slots() -> Array[SlotData]:
 					slots_to_attempt.append(slot)
 	else:
 		# 没有 active_act 时的逻辑
-		if token_viz != null and token_viz.token != null and token_viz.token.slot != null:
+		if token_viz != null and token_viz.token_data != null and token_viz.token_data.slot != null:
 			slots_to_open.append(token_viz.token_data.slot)
 		
 		# 从 cards 收集 slots
 		for card_viz in frag_tree.cards():
-			if card_viz.card != null:
-				for slot in card_viz.card_data.slots:
-					if slot != null:
-						slots_to_attempt.append(slot)
+			for slot in card_viz.card_data.slots:
+				slots_to_attempt.append(slot)
 		
 		# 从 fragments 收集 slots
 		for held_frag in frag_tree.fragments():
-			if held_frag.fragment != null:
-				for slot in held_frag.fragment.slots:
-					if slot != null:
-						slots_to_attempt.append(slot)
+			for slot in held_frag.fragment.slots:
+				slots_to_attempt.append(slot)
 		
 		# 全局 token 相关的 slots
 		for slot in Manager.GM.slot_sos:
 			if slot != null:
-				if slot.all_tokens or (token_viz != null and slot.token == token_viz.token):
+				if slot.all_tokens or (token_viz != null and slot.token == token_viz.token_data):
 					slots_to_attempt.append(slot)
 	
 	# 检查每个 slot 是否能打开
@@ -111,8 +106,6 @@ func check_for_slots() -> Array[SlotData]:
 func run_act(act: ActData) -> void:
 	if act == null:
 		return
-	
-	print("Running act: ", act.resource_path if act.resource_path else act.label)
 	active_act = act
 	force_act = null
 	branch_out_act = null
@@ -152,15 +145,15 @@ func on_time_up() -> void:
 func reset() -> void:
 	active_act = null
 	alt_act = null
-	end_text = null
-	run_text = null
-	label = null
+	end_text = ""
+	run_text = ""
+	label = ""
 	frag_tree.clear()
 #endregion
 
 #region Act 列表填充
 ## 根据 ActLink 列表填充目标 Act 数组
-func populate_act_list(source: Array[ActLink], target: Array, random_order: bool = false) -> void:
+func populate_act_list(source: Array[ActLink], target: Array[ActData], random_order: bool = false) -> void:
 	if source == null or target == null:
 		return
 	
@@ -173,9 +166,6 @@ func populate_act_list(source: Array[ActLink], target: Array, random_order: bool
 	
 	# 遍历所有 ActLink
 	for act_link in source:
-		if act_link == null:
-			continue
-		
 		var passed = false
 		
 		if act_link.act_rule != null:
@@ -203,7 +193,6 @@ func populate_act_list(source: Array[ActLink], target: Array, random_order: bool
 func setup_act_results() -> void:
 	# 如果有替代 Act，切换到替代 Act
 	if alt_act != null:
-		print("Switched to: ", alt_act.resource_path if alt_act.resource_path else alt_act.label)
 		active_act = alt_act
 	
 	# 将 slot 卡片移到窗口
@@ -242,7 +231,6 @@ func setup_act_results() -> void:
 	if branch_out_act != null:
 		var branch_context = Context.acquire_from_act_logic(self)
 		if attempt_act(branch_out_act, branch_context):
-			print("Branching out to act: ", branch_out_act.resource_path if branch_out_act.resource_path else branch_out_act.label)
 			call_stack.append(active_act)
 			branch_context.release()
 			run_act(branch_out_act)
@@ -332,12 +320,12 @@ func attempt_act(act: ActData, context, force: bool = false) -> bool:
 		return false
 
 ## 尝试 Act 列表
-func attempt_acts(acts: Array, match_token: bool = false) -> ActData:
+func attempt_acts(acts: Array[ActData], match_token: bool = false) -> ActData:
 	var context = Context.acquire_from_act_logic(self)
 	for act in acts:
 		if act != null:
 			# 检查 token 匹配
-			if match_token and token_viz != null and act.token != token_viz.token:
+			if match_token and token_viz != null and act.token != token_viz.token_data:
 				continue
 			
 			if attempt_act(act, context):
@@ -349,7 +337,7 @@ func attempt_acts(acts: Array, match_token: bool = false) -> ActData:
 
 #region 触发器应用
 ## 注入触发器（外部调用）
-func inject_triggers(target) -> void:
+func inject_triggers(target: Target) -> void:
 	if target == null:
 		return
 	
@@ -369,9 +357,9 @@ func apply_card_triggers(context, card_viz: CardViz) -> void:
 		return
 	
 	context.this_card = card_viz
-	context.this_aspect = card_viz.card
+	context.this_aspect = card_viz.card_data
 	
-	for rule in card_viz.card.rules:
+	for rule in card_viz.card_data.rules:
 		if rule != null:
 			rule.run(context)
 
@@ -406,13 +394,13 @@ func apply_triggers() -> void:
 #region 文本处理
 ## 更新运行时文本
 func update_text() -> void:
-	var new_run_text = get_text(alt_act) if alt_act else get_text(active_act)
+	var new_run_text = alt_act.label if alt_act else active_act.label
 	var new_label = alt_act.label if alt_act else active_act.label
 	
-	if new_run_text != "":
-		run_text = new_run_text
-	if new_label != "":
-		label = new_label
+	if new_run_text != null:
+		run_text = new_run_text.get_text()
+	if new_label != null:
+		label = new_label.get_text()
 
 ## 字符串插值
 func interpolate_string(s: String) -> String:
@@ -420,37 +408,44 @@ func interpolate_string(s: String) -> String:
 
 ## Token 描述
 func token_description() -> String:
-	if token_viz == null or token_viz.token == null:
+	if token_viz == null or token_viz.token_data == null:
 		return ""
-	return get_text_with_rules(token_viz.token.text_rules, token_viz.token.description)
+	return get_text_with_rules(token_viz.token_data.text_rules, token_viz.token_data.description)
 
 ## 获取 Act 文本
 func get_text(act: ActData) -> String:
 	if act == null:
 		return ""
-	return get_text_with_rules(act.text_rules, act.text.get_text())
+	return get_text_with_rules(act.text_rules, act.text)
 
 ## 获取 Act 结束文本
 func get_end_text(act: ActData) -> String:
 	if act == null:
 		return ""
-	return get_text_with_rules(act.end_text_rules, act.end_text.get_text())
+	return get_text_with_rules(act.end_text_rules, act.end_text)
 
 ## 根据规则获取文本
-func get_text_with_rules(text_rules: Array, default_text: String) -> String:
+func get_text_with_rules(text_rules: Array[RuleData], default_text: TextData) -> String:
 	if text_rules != null and text_rules.size() > 0:
 		var context = Context.acquire_from_act_logic(self)
 		
 		for rule in text_rules:
 			if rule != null and rule.evaluate(context):
-				var result = interpolate_string(rule.text)
+				var result = interpolate_string(_get_text_from_text_data(rule.text))
 				context.release()
 				return result
 		
 		context.release()
 	
-	return interpolate_string(default_text)
+	return interpolate_string(_get_text_from_text_data(default_text))
 #endregion
+
+
+func _get_text_from_text_data(_text_data: TextData) -> String:
+	var _text = ""
+	if _text_data != null:
+		_text = _text_data.get_text()
+	return _text
 
 #region 保存/加载
 ## 保存状态

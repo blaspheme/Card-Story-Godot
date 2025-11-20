@@ -1,11 +1,16 @@
-[gd_scene load_steps=11 format=3 uid="uid://ddaduqkgrarml"]
+[gd_scene load_steps=14 format=3 uid="uid://ddaduqkgrarml"]
 
 [ext_resource type="Script" uid="uid://dqcrtn7wnmpc1" path="res://scripts/gameplay/act/act_window.gd" id="1_7wm8j"]
 [ext_resource type="Script" uid="uid://j27b5u5j4pej" path="res://scripts/gameplay/act/act_logic.gd" id="2_sb48q"]
 [ext_resource type="Script" uid="uid://bd1rngn7fll0x" path="res://scripts/gameplay/act/card_lane.gd" id="2_x0mbc"]
+[ext_resource type="Script" uid="uid://djegrx8dt4w1l" path="res://scripts/behavior/mouse/mouse_act_window_behavior.gd" id="3_o3j1h"]
 [ext_resource type="Script" uid="uid://bsvj5t813vm0l" path="res://scripts/gameplay/fragment/frag_tree.gd" id="3_sb48q"]
 [ext_resource type="PackedScene" uid="uid://bb82rjto665im" path="res://scenes/gameplay/widgets/timer.tscn" id="4_0x7c6"]
+[ext_resource type="Script" uid="uid://b4ubjtg0th4wo" path="res://scripts/behavior/drop/drop_area2d.gd" id="5_a0is3"]
 [ext_resource type="PackedScene" uid="uid://bl2btp6irrfcg" path="res://scenes/gameplay/viz/slot_viz.tscn" id="5_t0h1x"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o3j1h"]
+size = Vector2(964, 57)
 
 [sub_resource type="Gradient" id="Gradient_sb48q"]
 offsets = PackedFloat32Array(0, 0.9880383, 1)
@@ -19,19 +24,46 @@ gradient = SubResource("Gradient_sb48q")
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_a0is3"]
 gradient = SubResource("Gradient_o3j1h")
 
-[node name="ActWindow" type="Node2D" node_paths=PackedStringArray("visuals", "label_text", "text_display", "idle_slots", "run_slots")]
+[node name="ActWindow" type="Node2D" node_paths=PackedStringArray("visuals", "label_text", "text_display", "slots_frag", "idle_slots_container", "run_slots_container", "result_lane", "timer_widget", "act_logic", "idle_slots", "run_slots", "collision_area", "mouse_behavior", "_click_timer")]
 script = ExtResource("1_7wm8j")
 visuals = NodePath("Visuals")
 label_text = NodePath("Visuals/Bar/Label")
 text_display = NodePath("Visuals/Foreground/RichTextLabel")
+slots_frag = NodePath("Slots")
+idle_slots_container = NodePath("Slots/IdleSlots")
+run_slots_container = NodePath("Slots/RunSlots")
+result_lane = NodePath("ResultsLane")
+timer_widget = NodePath("Visuals/Foreground/Timer")
+act_logic = NodePath("ActLogic")
 idle_slots = [NodePath("Slots/IdleSlots/SlotViz"), NodePath("Slots/IdleSlots/SlotViz2"), NodePath("Slots/IdleSlots/SlotViz3"), NodePath("Slots/IdleSlots/SlotViz4"), NodePath("Slots/IdleSlots/SlotViz5"), NodePath("Slots/IdleSlots/SlotViz6")]
 run_slots = [NodePath("Slots/RunSlots/SlotViz")]
+collision_area = NodePath("Area2D")
+mouse_behavior = NodePath("Behavior/MouseActWindowBehavior")
+_click_timer = NodePath("ClickTimer")
 
-[node name="ActLogic" type="Node" parent="."]
+[node name="ActLogic" type="Node" parent="." node_paths=PackedStringArray("frag_tree", "act_window")]
 script = ExtResource("2_sb48q")
+frag_tree = NodePath("../Root")
+act_window = NodePath("..")
+
+[node name="Behavior" type="Node" parent="."]
+
+[node name="MouseActWindowBehavior" type="Node" parent="Behavior"]
+script = ExtResource("3_o3j1h")
+metadata/_custom_type_script = "uid://djegrx8dt4w1l"
 
 [node name="Root" type="Node" parent="."]
 script = ExtResource("3_sb48q")
+
+[node name="Area2D" type="Area2D" parent="."]
+position = Vector2(-24, 0)
+script = ExtResource("5_a0is3")
+metadata/_custom_type_script = "uid://b4ubjtg0th4wo"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(485, 29.5)
+shape = SubResource("RectangleShape2D_o3j1h")
+debug_color = Color(0.7513844, 0.41200167, 0.542438, 0.41960785)
 
 [node name="Visuals" type="Node2D" parent="."]
 
@@ -103,11 +135,11 @@ script = ExtResource("2_x0mbc")
 [node name="Root" type="Node" parent="ResultsLane"]
 script = ExtResource("3_sb48q")
 
-[node name="Slots" type="Node" parent="."]
+[node name="Slots" type="Node2D" parent="."]
 script = ExtResource("3_sb48q")
 free = true
 
-[node name="IdleSlots" type="Node" parent="Slots"]
+[node name="IdleSlots" type="Node2D" parent="Slots"]
 
 [node name="SlotViz" parent="Slots/IdleSlots" instance=ExtResource("5_t0h1x")]
 position = Vector2(102, 214)
@@ -133,11 +165,18 @@ scale = Vector2(0.8, 0.8)
 position = Vector2(442, 504)
 scale = Vector2(0.8, 0.8)
 
-[node name="RunSlots" type="Node" parent="Slots"]
+[node name="RunSlots" type="Node2D" parent="Slots"]
 
 [node name="SlotViz" parent="Slots/RunSlots" instance=ExtResource("5_t0h1x")]
 visible = false
 position = Vector2(280, 300)
 scale = Vector2(0.8, 0.8)
 
+[node name="ClickTimer" type="Timer" parent="."]
+wait_time = 0.3
+
+[connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
+[connection signal="mouse_entered" from="Area2D" to="." method="_on_area_2d_mouse_entered"]
+[connection signal="mouse_exited" from="Area2D" to="." method="_on_area_2d_mouse_exited"]
 [connection signal="pressed" from="Visuals/Bar/CloseButton" to="." method="close"]
+[connection signal="pressed" from="Visuals/HBoxContainer/OKButton" to="." method="go_for_it"]

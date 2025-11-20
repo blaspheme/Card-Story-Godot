@@ -49,7 +49,7 @@ extends Resource
 # ===============================
 # Act链：动态变化、运行结束之后的后续Act
 # ===============================
-@export_group("Alt / Next / Spawned Acts")
+@export_group("Alt 、 Next 、 Spawned Acts")
 @export var random_alt: bool = false
 ## 运行时的可选替代（选择替换当前 Act 的变体）
 @export var alt_acts: Array[ActLink]

@@ -1,10 +1,13 @@
 extends Node2D
 class_name Viz
 
-## 可拖拽卡片的基类
+## 可拖拽可视化物体的基类
 ## 提供拖拽、高亮、点击等通用功能，子类需实现抽象方法
 
 #region 行为以及其依赖的属性
+@export_group("导出节点")
+## 碰撞检测区域: 拖拽、放置、点击触发区域
+@export var collision_area: DropArea2D
 @export_group("策略")
 ## 高亮行为
 @export var highlight_behavior: HighlightBehavior
@@ -14,9 +17,6 @@ var _mat: ShaderMaterial
 @export var mouse_behavior: MouseBehavior
 ## 是否在进行UI操作，避免其他节点也响应输入
 var is_input_active = false
-@export_group("导出节点")
-## 卡牌区域: 拖拽、放置、点击触发区域
-@export var area: DropArea2D
 #endregion
 
 #region 属性
@@ -280,7 +280,7 @@ func _start_drag() -> void:
 	z_index = 1000
 	
 	# 禁用 Area2D 输入，防止拖拽时触发其他事件
-	area.input_pickable = false
+	collision_area.input_pickable = false
 	
 	# 启用输入处理（只处理当前卡片的输入）
 	set_process_input(true)
@@ -295,7 +295,7 @@ func _end_drag() -> void:
 	# 恢复原始层级
 	z_index = original_z_index
 	# 重新启用 Area2D 输入
-	area.input_pickable = true
+	collision_area.input_pickable = true
 	# 停用输入处理
 	set_process_input(false)
 	
@@ -353,9 +353,21 @@ func _place_on_nearest_array_table() -> void:
 #endregion
 
 ## Drop 信号连接类， area 是 target 的area
+@warning_ignore("unused_parameter")
 func _on_drop(dragged, target) -> void:
 	var dragged_viz = dragged.get_parent()
 	if dragged_viz is CardViz:
-		area.on_card_drop(dragged)
+		collision_area.on_card_drop(dragged)
 	if dragged_viz is TokenViz:
-		area.on_token_drop(dragged)
+		collision_area.on_token_drop(dragged)
+
+#region 辅助方法
+## 设置当前对象的可见性、Area2D是否可触发性、碰撞体是否生效
+func set_active(is_active: bool = true, collision_type: String = "CollisionShape2D") -> void:
+	visible = is_active
+	collision_area.monitoring = is_active
+	collision_area.monitorable = is_active
+	var _c = collision_area.get_node(collision_type) as CollisionShape2D
+	_c.disabled = !is_active
+
+#endregion

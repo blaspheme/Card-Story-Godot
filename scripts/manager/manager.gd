@@ -5,3 +5,4 @@ extends Node
 ## GameManager 赋值
 var GM: GameManager
 var UI: UIManager
+var DRAG: DragManager
