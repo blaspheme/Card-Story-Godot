@@ -18,3 +18,75 @@ builds/**/*
 # Code coverage reports
 coverage.*
 reports/
+
+# visual studio code settings
+.vscode/
+.history/
+*.code-workspace
+# Temporary files
+*.tmp
+*.temp
+~$*
+# Backup files
+*.bak
+*.old
+*.orig
+
+# visual studio
+.vs/
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.VC.opendb
+ipch/
+*.aps
+*.ncb
+*.opt
+*.plg
+*.pch
+*.vsp
+*.vspx
+*.vspscc
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+# Others
+*.log
+*.vsix
+*.pdb
+*.cache
+*.ilk
+*.meta
+*.obj
+*.exe
+*.dll
+*.lib
+*.app
+*.iobj
+*.ipdb
+*.ipch
+*.exp
+*.map
+*.tlog
+*.lastbuildstate
+*.filters
+*.dbmdl
+*.jfm
+*.opendb
+*.pyc
+*.class
+*.jar
+*.war
+*.ear
+*.swp
+*~.swx

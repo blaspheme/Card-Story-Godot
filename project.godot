@@ -13,7 +13,7 @@ config_version=5
 config/name="Card Story"
 config/version="0.0.1"
 run/main_scene="res://scenes/menu/menu.tscn"
-config/features=PackedStringArray("4.5")
+config/features=PackedStringArray("4.5", "C#")
 config/icon="uid://pgo1v2tn7yih"
 
 [autoload]

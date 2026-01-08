@@ -22,7 +22,7 @@ func _on_PlayButton_pressed() -> void:
 			"val": 15
 		},
 	}
-	GGT.change_scene("res://scenes/gameplay/gameplay.tscn", params)
+	GGT.change_scene("res://scenes/level/gameplay.tscn", params)
 
 
 func _on_ExitButton_pressed() -> void:
